@@ -1,0 +1,71 @@
+//@ts-nocheck
+'use client';
+
+import React, { useContext, useEffect, useMemo } from "react";
+import { useMarketplaceStore } from "@/store/useMarketplaceStore";
+import NFTGrid from "../NFT/NFTGrid";
+import { Container, Typography, CircularProgress, Box } from "@mui/material";
+import { MarketplaceDataContext } from '@/components/MarketplaceProvider/MarketplaceProvider'; // Adjust the import path
+
+type Props = {
+  overrideOnclickBehavior?: (nft: any) => void;
+  emptyText: string;
+};
+
+const ListingGridComponent: React.FC<Props> = ({ overrideOnclickBehavior, emptyText }) => {
+  const { nftData, loadingListings } = useMarketplaceStore();
+
+  const marketplaceDataContext = useContext(MarketplaceDataContext);
+
+  useEffect(() => {
+    if (nftData.length > 0 && marketplaceDataContext?.fetchVoteData) {
+      marketplaceDataContext.fetchVoteData();
+    }
+  }, [nftData, marketplaceDataContext?.fetchVoteData]);
+
+
+  // Memoize the convertedNftData
+  const convertedNftData = useMemo(() => {
+    return nftData.map(nft => ({
+      ...nft,
+      tokenId: nft.tokenId.toString()
+    }));
+  }, [nftData]);
+
+
+  if (loadingListings) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <CircularProgress color="inherit" />
+      </Box>
+    );
+  }
+
+  if (convertedNftData.length === 0) {
+    return (
+      <Container>
+        <Typography variant="h6" align="center" color="textSecondary" sx={{ mt: 4 }}>
+          {emptyText}
+        </Typography>
+      </Container>
+    );
+  }
+
+  return (
+    <Container sx={{ py: 4 }}>
+      <NFTGrid
+        nftData={convertedNftData}
+        emptyText={emptyText}
+        overrideOnclickBehavior={overrideOnclickBehavior}
+      />
+    </Container>
+  );
+};
+
+// Wrap the component with React.memo
+const ListingGrid = React.memo(ListingGridComponent);
+
+// Assign a display name to the memoized component
+ListingGrid.displayName = "ListingGrid";
+
+export default ListingGrid;
