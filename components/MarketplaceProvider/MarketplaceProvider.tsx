@@ -22,7 +22,8 @@ import { useActiveAccount } from 'thirdweb/react';
 import { formatUnits } from 'ethers/lib/utils';
 import veNFTAPIAbi from '@/abis/VENFTABI.json'; // Ensure the path is correct
 import client from '@/lib/client';
-import { getContract, readContract } from 'thirdweb';
+import { getContract, readContract, getContractEvents, prepareEvent } from 'thirdweb';
+import { ethers } from 'ethers';
 
 interface veNFT {
   id: bigint;
@@ -79,11 +80,13 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAuctions,
     setNftData,
     setReEthPrice,
+    setTotalVolume, // New setter
     setLockedTokenPrice,
     setLoadingListings,
     setLoadingAuctions,
     lockedTokenPrice,
     nftData,
+    totalVolume,
   } = useMarketplaceStore();
 
   const parseLockedTokenAmount = (voteDataRaw: veNFT | any): number => {
@@ -351,6 +354,38 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [nftData, setNftData, lockedTokenPrice, venftContract]);
 
+  const fetchTotalVolume = async () => {
+    try {
+      // Correctly prepare the NewSale event with all parameters
+      const newSaleEvent = prepareEvent({
+        signature: "event NewSale(address indexed listingCreator, uint256 indexed listingId, address indexed assetContract, uint256 tokenId, address buyer, uint256 quantityBought, uint256 totalPricePaid)",
+      });
+  
+      // Fetch the NewSale events from the marketplace contract
+      const events = await getContractEvents({
+        contract: MARKETPLACE,
+        events: [newSaleEvent], // Ensure this is an array if multiple events are fetched
+        fromBlock: BigInt(1040854), // Consider updating to the deployment block for efficiency
+        toBlock: 'latest',
+      });
+  
+      console.log('Fetched events:', events);
+  
+      // Calculate the total volume using BigNumber for precision
+      const totalVolume = events.reduce((total, event) => {
+        const totalPricePaid = ethers.BigNumber.from(event.args.totalPricePaid);
+        return total.add(totalPricePaid);
+      }, ethers.BigNumber.from(0));
+  
+      console.log('Total volume:', totalVolume.toString());
+  
+      setTotalVolume(parseFloat(ethers.utils.formatUnits(totalVolume, 18)));
+    } catch (error) {
+      console.error('Error fetching total volume:', error);
+    }
+  };
+  
+
   useEffect(() => {
     isMounted = true; // To prevent setting state on unmounted component
 
@@ -359,6 +394,9 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Fetch reETH price on mount
     fetchAndSetReEthPrice(setReEthPrice);
+
+    // Fetch total volume
+    fetchTotalVolume();
 
     // Set up interval to fetch reETH price every 60 seconds
     // const reEthPriceInterval = setInterval(() => {

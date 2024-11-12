@@ -60,6 +60,7 @@ export interface MarketplaceState {
   nftData: NFTData[];
   reEthPrice: number | null;
   lockedTokenPrice: number | null;
+  totalVolume: number; // New State Variable
   loadingListings: boolean;
   loadingAuctions: boolean;
   setListings: (listings: SanitizedDirectListing[]) => void;
@@ -67,6 +68,7 @@ export interface MarketplaceState {
   setNftData: (nftData: NFTData[]) => void;
   setReEthPrice: (price: number | null) => void;
   setLockedTokenPrice: (price: number | null) => void;
+  setTotalVolume: (volume: number) => void; // New Setter Function
   setLoadingListings: (loading: boolean) => void;
   setLoadingAuctions: (loading: boolean) => void;
   // Add other actions as needed
@@ -78,16 +80,17 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   nftData: [],
   reEthPrice: null,
   lockedTokenPrice: null,
+  totalVolume: 0, // Initialize totalVolume
   loadingListings: false,
   loadingAuctions: false,
   setListings: (listings) => {
-    set((state) => ({
+    set(() => ({
       listings: listings,
       // Optionally, update nftData if listings are linked to NFTs
     }));
   },
   setAuctions: (auctions) => {
-    set((state) => ({
+    set(() => ({
       auctions: auctions,
       // Optionally, update nftData if auctions are linked to NFTs
     }));
@@ -115,6 +118,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
   setReEthPrice: (price) => set({ reEthPrice: price }),
   setLockedTokenPrice: (price) => set({ lockedTokenPrice: price }),
+  setTotalVolume: (volume) => set({ totalVolume: volume }), // Implement setter
   setLoadingListings: (loading) => set({ loadingListings: loading }),
   setLoadingAuctions: (loading) => set({ loadingAuctions: loading }),
 }));

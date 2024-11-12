@@ -85,80 +85,92 @@ const NFTComponent: React.FC<Props> = ({
       ? userNFT.assignedValue
       : null;
 
-  return (
-    <div
-      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg flex flex-col w-full bg-gradient-to-br from-orange-400 to-blue-500 justify-between border overflow-hidden border-white/10 rounded-lg relative"
-      onClick={handleClick}
-    >
-      {/* NFT Image Section */}
-      <div className="relative w-full h-64">
-        {nft?.metadata.image && (
-          <MediaRenderer
-            src={nft.metadata.image}
-            client={client}
-            className="object-cover object-center w-full h-full rounded-t-lg"
-            loading="lazy" // Lazy loading for performance
-            alt={nft.metadata.name || `NFT ${tokenId}`} // Enhanced alt attribute
-          />
-        )}
-      </div>
-
-      {/* Text Section with Semi-Transparent Background */}
-      <div className="flex flex-col justify-between p-4 bg-black bg-opacity-70">
-        {/* NFT Name and ID */}
-        <div>
-          <p className="text-lg font-bold text-white truncate">
-            {nft?.metadata.name || "Unnamed NFT"}
-          </p>
-          <p className="text-sm text-gray-400">
-            #{tokenId}
-          </p>
-        </div>
-
-        {/* Locked Amount */}
-        <div className="mt-2">
-          <p className="text-sm font-medium text-white">Locked Amount</p>
-          <p className="text-lg font-semibold text-white">
-            {displayLockedTokenAmount !== null
-              ? `${Number(displayLockedTokenAmount).toFixed(2)} Pearl`
-              : "N/A"}
-          </p>
-        </div>
-
-        {/* Assigned Value Section */}
-        <div className="mt-2">
-          <p className="text-sm font-medium text-white">Estimated Value</p>
-          <p className="text-lg font-semibold text-white">
-            {displayAssignedValue !== null
-              ? `$${Number(displayAssignedValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              : "N/A"}
-          </p>
-        </div>
-
-        {/* Price Section */}
-        {(directListing || auctionListing) && (
-          <div className="mt-2">
-            <p className="text-sm font-medium text-white">Price</p>
-            <p className="text-lg font-semibold text-white">
-              {directListing
-                ? `${directListing.currencyValuePerToken.displayValue} ${directListing.currencyValuePerToken.symbol} (${calculateUsd(directListing.currencyValuePerToken.displayValue)})`
-                : auctionListing
-                ? `${auctionListing.minimumBidCurrencyValue.displayValue} ${auctionListing.minimumBidCurrencyValue.symbol} (${calculateUsd(auctionListing.minimumBidCurrencyValue.displayValue)})`
-                : "N/A"}
-            </p>
+      return (
+        <div
+          className="cursor-pointer transition-transform transform hover:scale-105 hover:shadow-lg flex flex-col w-full bg-gradient-to-br from-orange-400 to-blue-500 justify-between border overflow-hidden border-white/10 rounded-lg relative"
+          onClick={handleClick}
+        >
+          {/* NFT Image Section */}
+          <div className="relative w-full h-64">
+            {nft?.metadata.image && (
+              <MediaRenderer
+                src={nft.metadata.image}
+                className="object-cover object-center w-full h-full rounded-t-lg"
+                loading="lazy" // Lazy loading for performance
+                alt={nft.metadata.name || `NFT ${tokenId}`} // Enhanced alt attribute
+              />
+            )}
           </div>
-        )}
-
-        {/* Timestamps Section */}
-        {(directListing || auctionListing) && (
-          <div className="mt-2">
-            <p className="text-sm font-medium text-white">Listing Ends On</p>
-            <p className="text-sm text-white/80">{listingEndTime}</p>
+    
+          {/* Text Section with Semi-Transparent Background */}
+          <div className="flex flex-col justify-between p-4 bg-black bg-opacity-70 h-full">
+            {/* NFT Name and ID */}
+            <div>
+              <p className="text-lg font-bold text-white truncate whitespace-nowrap">
+                {nft?.metadata.name || "Unnamed NFT"}
+              </p>
+              <p className="text-sm text-gray-400 truncate whitespace-nowrap">
+                #{tokenId}
+              </p>
+            </div>
+    
+            {/* Locked Amount and Estimated Value */}
+            <div className="mt-2 flex flex-wrap sm:flex-nowrap space-y-2 sm:space-y-0 sm:space-x-4">
+              {/* Locked Amount */}
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white truncate whitespace-nowrap">
+                  Locked Amount
+                </p>
+                <p className="text-lg font-semibold text-white truncate whitespace-nowrap">
+                  {displayLockedTokenAmount !== null
+                    ? `${Number(displayLockedTokenAmount).toFixed(2)} Pearl`
+                    : "N/A"}
+                </p>
+              </div>
+    
+              {/* Estimated Value */}
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white truncate whitespace-nowrap">
+                  Estimated Value
+                </p>
+                <p className="text-lg font-semibold text-white truncate whitespace-nowrap">
+                  {displayAssignedValue !== null
+                    ? `$${Number(displayAssignedValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+    
+            {/* Price Section */}
+            {(directListing || auctionListing) && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-white truncate whitespace-nowrap">
+                  Price
+                </p>
+                <p className="text-lg font-semibold text-white truncate whitespace-nowrap">
+                  {directListing
+                    ? `${directListing.currencyValuePerToken.displayValue} ${directListing.currencyValuePerToken.symbol} (${calculateUsd(directListing.currencyValuePerToken.displayValue)})`
+                    : selectedAuctionListing
+                    ? `${auctionListing.minimumBidCurrencyValue.displayValue} ${auctionListing.minimumBidCurrencyValue.symbol} (${calculateUsd(auctionListing.minimumBidCurrencyValue.displayValue)})`
+                    : "N/A"}
+                </p>
+              </div>
+            )}
+    
+            {/* Timestamps Section */}
+            {(directListing || auctionListing) && (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-white truncate whitespace-nowrap">
+                  Listing Ends On
+                </p>
+                <p className="text-sm text-white/80 truncate whitespace-nowrap">
+                  {listingEndTime}
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default NFTComponent;
+        </div>
+      );
+    };
+    
+    export default NFTComponent;
