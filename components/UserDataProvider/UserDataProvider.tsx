@@ -11,6 +11,7 @@ import { isEqual } from 'lodash';
 import { fetchTokenPrices } from '@/lib/fetchEthPrice';
 import { useMarketplaceStore } from '@/store/useMarketplaceStore';
 import veNFTAPIAbi from '@/abis/VENFTABI.json'; // Ensure the path is correct
+import abi from '@/abis/NFTCOLLECTIONABI.json'; // Ensure the path is correct
 import { formatUnits } from 'ethers/lib/utils';
 
 const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -23,6 +24,7 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
       client,
       chain,
       address: NFT_COLLECTION_ADDRESS,
+      abi: abi, // Pass the ABI here
     });
   }, [chain]);
 
@@ -49,6 +51,7 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
   const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
 
   // Memoize the parameters for useReadContract
+
   const readContractParams = useMemo(() => {
     return {
       contract,
@@ -66,6 +69,8 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     error: errorOwnedNFTs,
   } = useReadContract(getOwnedNFTs, readContractParams);
 
+  console.log('ownedNFTs:', ownedNFTs);
+
   // Use useReadContract to fetch vote data
   const {
     data: voteDataRaw,
@@ -74,7 +79,7 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
   } = useReadContract<any, any>({
     contract: venftContract, // Correct contract instance
     method: 'getNFTFromAddress',
-    params: [account?.address || ''], // Ensure correct args based on getNFTFromAddress signature
+    params: [account?.address || ''],
     queryOptions: {
       enabled: !!account?.address,
     },
