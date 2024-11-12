@@ -37,10 +37,10 @@ const Buy: React.FC = () => {
           aria-label="view toggle"
           color="primary"
         >
-          <ToggleButton value="grid" aria-label="grid view">
+          <ToggleButton value="grid" aria-label="grid view" sx={{color: 'white'}}>
             Grid View
           </ToggleButton>
-          <ToggleButton value="table" aria-label="table view">
+          <ToggleButton value="table" aria-label="table view" sx={{color: 'white'}}>
             Table View
           </ToggleButton>
         </ToggleButtonGroup>

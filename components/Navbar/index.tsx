@@ -40,6 +40,10 @@ export function Navbar() {
               theme="dark"
               client={client}
               chain={NETWORK}
+              connectModal={{
+                title: "Sign in to MyApp",
+                size: "compact",
+              }}
             />
           </div>
         </div>
