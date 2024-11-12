@@ -31,7 +31,7 @@ export default function Sell() {
 
   return (
     <div>
-      <h1 className="text-4xl">Sell NFTs</h1>
+      <h1 className="text-4xl">Your Owned NFTs</h1>
       <div className="my-8">
         {!selectedNft ? (
           <>

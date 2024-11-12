@@ -30,7 +30,6 @@ const Buy: React.FC = () => {
     }
   };
 
-
   //calculate total volume in USD
   const totalVolumeUSD = reEthPrice !== null ? totalVolume * reEthPrice : 0;
   //total volume USD to 2 decimal places
@@ -40,7 +39,7 @@ const Buy: React.FC = () => {
     <div className="px-8 py-4">
       {/* Header Section with Total Volume */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h1 className="text-4xl text-white font-bold">Listed NFTs</h1>
+        <h1 className="text-4xl text-white font-bold">NFTs listed on the Market</h1>
         <div className="mt-4 sm:mt-0">
           {loadingVolume ? (
             <div className="flex items-center">
