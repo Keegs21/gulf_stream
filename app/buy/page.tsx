@@ -23,6 +23,7 @@ const Buy: React.FC = () => {
     }
   };
 
+  
   return (
     <div className="px-8 py-4">
       {/* Header Section */}
