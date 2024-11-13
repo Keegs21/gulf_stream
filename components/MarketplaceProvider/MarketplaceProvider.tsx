@@ -368,17 +368,13 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         fromBlock: BigInt(1040854), // Consider updating to the deployment block for efficiency
         toBlock: 'latest',
       });
-  
-      console.log('Fetched events:', events);
-  
+    
       // Calculate the total volume using BigNumber for precision
       const totalVolume = events.reduce((total, event) => {
         const totalPricePaid = ethers.BigNumber.from(event.args.totalPricePaid);
         return total.add(totalPricePaid);
       }, ethers.BigNumber.from(0));
-  
-      console.log('Total volume:', totalVolume.toString());
-  
+    
       setTotalVolume(parseFloat(ethers.utils.formatUnits(totalVolume, 18)));
     } catch (error) {
       console.error('Error fetching total volume:', error);

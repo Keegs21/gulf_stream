@@ -1,5 +1,5 @@
-//@ts-nocheck
 
+//@ts-nocheck
 'use client';
 
 import { NFT as NFTType } from "thirdweb";
@@ -62,8 +62,9 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
 
    // Compute USD value
-   const usdValue = (parseFloat(directListingState.price) * reEthPrice).toFixed(2);
-
+   const usdValue = directListing ? (parseFloat(directListing.buyoutPricePerToken) * reEthPrice).toFixed(2) : "0.00";
+   // Compute USD value for direct listing
+    const usdValue2 = (parseFloat(directListingState.price) * reEthPrice).toFixed(2);
   return (
     <>
       <div className="">
@@ -105,7 +106,7 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
             <>
               {/* Input field for buyout price */}
               <legend className={cn(LEGEND_STYLES)}>
-                wreETH Listing Price
+                reETH Listing Price
               </legend>
               <div className="relative">
             <input
@@ -121,7 +122,7 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
             {/* Display USD value */}
             {directListingState.price && reEthPrice && (
               <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/80">
-                (${usdValue})
+                (${usdValue2})
               </span>
             )}
           </div>

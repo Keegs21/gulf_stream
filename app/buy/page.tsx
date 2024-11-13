@@ -8,6 +8,7 @@ import ListingGrid from "@/components/ListingGrid/ListingGrid"; // Ensure correc
 import ListingTable from "@/components/ListingTable/ListingTable"; // Ensure correct import path
 import { useMarketplaceStore } from '@/store/useMarketplaceStore'; // Import the store
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
 
 const Buy: React.FC = () => {
   const [view, setView] = useState<'grid' | 'table'>('grid');
@@ -20,6 +21,7 @@ const Buy: React.FC = () => {
 
   //pull reETH price from userstore
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
+  const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
 
   const handleToggle = (
     event: React.MouseEvent<HTMLElement>,
@@ -34,6 +36,10 @@ const Buy: React.FC = () => {
   const totalVolumeUSD = reEthPrice !== null ? totalVolume * reEthPrice : 0;
   //total volume USD to 2 decimal places
   const totalVolumeUSD2dp = totalVolumeUSD.toFixed(2);
+  //reETh price to 2 decimal places
+  const reEthPrice2dp = parseFloat(reEthPrice).toFixed(2);
+  //locked token price to 2 decimal places
+  const lockedTokenPrice2dp = parseFloat(lockedTokenPrice).toFixed(2);
 
   return (
     <div className="px-8 py-4">
@@ -44,14 +50,22 @@ const Buy: React.FC = () => {
           {loadingVolume ? (
             <div className="flex items-center">
               <CircularProgress size={24} className="text-white mr-2" />
-              <span className="text-white">Calculating Total Volume...</span>
+              <span className="text-white">Calculating Stats...</span>
             </div>
           ) : errorVolume ? (
             <span className="text-red-500">Error fetching volume</span>
           ) : (
-            <span className="text-lg text-white">
-              Total Volume: ${totalVolumeUSD2dp} ({totalVolume} reETH)
-            </span>
+			<div className="flex flex-col space-y-2">
+			<span className="text-transparent bg-clip-text gradient-orange-blue text-lg sm:text-xl">
+			  Gulf Stream Total Volume: ${totalVolumeUSD2dp} ({totalVolume} reETH)
+			</span>
+			<span className="text-lg text-white">
+			  reETH Price: ${reEthPrice2dp}
+			</span>
+			<span className="text-lg text-white">
+			  Pearl Price: ${lockedTokenPrice2dp}
+			</span>
+		  </div>		  
           )}
         </div>
       </div>

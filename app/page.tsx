@@ -27,7 +27,7 @@ const Home: NextPage = () => {
           Welcome to Gulf Stream
         </span> 
         <br />
-        Where you can exchange NFTs of Real World Assets for Crypto.
+        Exchange your Investment NFTs for Crypto.
       </h1>
         <p className="text-white/60 text-lg max-w-xl mx-auto">
 					Use our decentralized marketplace with audited open source contracts

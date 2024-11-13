@@ -69,8 +69,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     error: errorOwnedNFTs,
   } = useReadContract(getOwnedNFTs, readContractParams);
 
-  console.log('ownedNFTs:', ownedNFTs);
-
   // Use useReadContract to fetch vote data
   const {
     data: voteDataRaw,

@@ -151,7 +151,7 @@ const NFTComponent: React.FC<Props> = ({
                   {directListing
                     ? `${directListing.currencyValuePerToken.displayValue} ${directListing.currencyValuePerToken.symbol} (${calculateUsd(directListing.currencyValuePerToken.displayValue)})`
                     : selectedAuctionListing
-                    ? `${auctionListing.minimumBidCurrencyValue.displayValue} ${auctionListing.minimumBidCurrencyValue.symbol} (${calculateUsd(auctionListing.minimumBidCurrencyValue.displayValue)})`
+                    ? `${auctionListing.minimumBidCurrencyValue.displayValue} ${auctionListing.minimumBidCurrencyValue.symbol} (${calculateUsd(selectedAuctionListing.minimumBidCurrencyValue.displayValue)})`
                     : "N/A"}
                 </p>
               </div>

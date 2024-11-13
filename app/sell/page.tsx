@@ -65,8 +65,9 @@ export default function Sell() {
                     setSelectedNft(null);
                   }}
                   className="absolute top-0 right-0 m-3 transition-all cursor-pointer hover:scale-110"
+                  aria-label="Close NFT Preview"
                 >
-                  <Cross1Icon className="w-6 h-6" />
+                  <Cross1Icon className="w-6 h-6 text-black" />
                 </button>
               </div>
             </div>
