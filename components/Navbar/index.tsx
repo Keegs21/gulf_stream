@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import client from "@/lib/client";
 import { NETWORK } from "@/const/contracts";
+import { FaDiscord } from 'react-icons/fa';
+
 
 export function Navbar() {
   return (
@@ -36,7 +38,13 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center justify-center gap-4">
-          <div className="">
+          {/* Discord Icon */}
+          <Link href="https://discord.gg/a3mtQ6Ub" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord">
+            <FaDiscord className="w-6 h-6 text-white hover:text-[#7289DA] transition-colors duration-200 cursor-pointer" />
+          </Link>
+
+          {/* Connect Button */}
+          <div>
             <ConnectButton
               theme="dark"
               client={client}
