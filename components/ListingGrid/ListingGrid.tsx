@@ -52,13 +52,11 @@ const ListingGridComponent: React.FC<Props> = ({ overrideOnclickBehavior, emptyT
   }
 
   return (
-    <Container sx={{ py: 4 }}>
       <NFTGrid
         nftData={convertedNftData}
         emptyText={emptyText}
         overrideOnclickBehavior={overrideOnclickBehavior}
       />
-    </Container>
   );
 };
 

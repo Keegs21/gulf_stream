@@ -52,7 +52,7 @@ export default function Sell() {
             )}
           </>
         ) : (
-          <div className="flex max-w-full gap-8 mt-0">
+          <div className="flex max-w-full gap-8 mt-0 bg-[#5dddff]/10 p-4 rounded-md">
             <div className="flex flex-col w-full">
               <div className="relative">
                 <MediaRenderer
