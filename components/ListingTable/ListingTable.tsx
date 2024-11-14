@@ -7,7 +7,14 @@ import Image from 'next/image';
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { convertReEthToUsd, convertReEthToUsdNumber, calculateSaleRatio } from "@/util/priceUtils"; // Import the utility functions
+import { 
+  convertReEthToUsd, 
+  convertReEthToUsdNumber, 
+  convertPearlToUsd, 
+  convertPearlToUsdNumber, 
+  calculateSaleRatio 
+} from "@/util/priceUtils"; // Import the utility functions
+import { PEARL_ADDRESS, REETH_ADDRESS } from "@/const/contracts"; // Ensure REETH_ADDRESS is imported
 
 type MarketGridProps = {
   overrideOnclickBehavior?: (nft: any) => void;
@@ -21,7 +28,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
   emptyText,
 }) => {
   // Fetch data from useMarketplaceStore
-  const { nftData, loadingListings, loadingAuctions, reEthPrice } = useMarketplaceStore();
+  const { nftData, loadingListings, loadingAuctions, reEthPrice, lockedTokenPrice } = useMarketplaceStore();
 
   if (loadingListings || loadingAuctions) {
     return (
@@ -46,19 +53,40 @@ const ListingTable: React.FC<MarketGridProps> = ({
     let priceDisplay = "N/A";
     let usdPrice = "N/A";
     let usdPriceNumber: number | null = null;
+    let currencyAddress: string | undefined = undefined;
 
     if (nft.directListing) {
       const reEthAmount = nft.directListing.currencyValuePerToken.displayValue;
       priceDisplay = `${reEthAmount} ${nft.directListing.currencyValuePerToken.symbol}`;
-      usdPrice = convertReEthToUsd(reEthAmount, reEthPrice);
-      usdPriceNumber = convertReEthToUsdNumber(reEthAmount, reEthPrice);
+      currencyAddress = nft.directListing.currencyContractAddress;
+
+      if (currencyAddress.toLowerCase() === PEARL_ADDRESS.toLowerCase()) {
+        usdPrice = convertPearlToUsd(reEthAmount, lockedTokenPrice);
+        usdPriceNumber = convertPearlToUsdNumber(reEthAmount, lockedTokenPrice);
+      } else if (currencyAddress.toLowerCase() === REETH_ADDRESS.toLowerCase()) {
+        usdPrice = convertReEthToUsd(reEthAmount, reEthPrice);
+        usdPriceNumber = convertReEthToUsdNumber(reEthAmount, reEthPrice);
+      } else {
+        usdPrice = "Unknown Currency";
+        usdPriceNumber = null;
+      }
+
     } else if (nft.auctionListing) {
       const reEthAmount = nft.auctionListing.minimumBidCurrencyValue.displayValue;
       priceDisplay = `${reEthAmount} ${nft.auctionListing.minimumBidCurrencyValue.symbol}`;
-      usdPrice = convertReEthToUsd(reEthAmount, reEthPrice);
-      usdPriceNumber = convertReEthToUsdNumber(reEthAmount, reEthPrice);
-    }
+      currencyAddress = nft.auctionListing.currency;
 
+      if (currencyAddress.toLowerCase() === PEARL_ADDRESS.toLowerCase()) {
+        usdPrice = convertPearlToUsd(reEthAmount, lockedTokenPrice);
+        usdPriceNumber = convertPearlToUsdNumber(reEthAmount, lockedTokenPrice);
+      } else if (currencyAddress.toLowerCase() === REETH_ADDRESS.toLowerCase()) {
+        usdPrice = convertReEthToUsd(reEthAmount, reEthPrice);
+        usdPriceNumber = convertReEthToUsdNumber(reEthAmount, reEthPrice);
+      } else {
+        usdPrice = "Unknown Currency";
+        usdPriceNumber = null;
+      }
+    }
 
     // Extract listing expiration time
     const formatTimestamp = (timestampInSeconds: number | bigint): string => {
@@ -144,7 +172,16 @@ const ListingTable: React.FC<MarketGridProps> = ({
         return <span>{formattedValue}</span>;
       },
     },
-    { field: "price", headerName: "Price", width: 200 },
+    {
+      field: "price",
+      headerName: "Price",
+      width: 250,
+      renderCell: (params) => (
+        <span>
+          {params.value}
+        </span>
+      ),
+    },
     {
       field: "SaleRatio",
       headerName: "Sale Ratio",
@@ -188,8 +225,14 @@ const ListingTable: React.FC<MarketGridProps> = ({
         onRowClick={(params) => handleRowClick(params)}
         disableRowSelectionOnClick
         sx={{
-          backgroundImage: 'linear-gradient(to right, #ff9e38, #5dddff)', 
+          backgroundImage: 'linear-gradient(to right, #001a33 0%, #0294fe 50%, #cc7000 100%)',
+          backgroundBlendMode: 'overlay',
+          color: 'white',
+          '& .MuiDataGrid-columnHeaders': {
+            color: 'black',
+          },
         }}
+        
         // Additional DataGrid props can be added here
       />
     </Box>

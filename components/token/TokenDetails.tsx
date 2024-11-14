@@ -10,6 +10,7 @@ import MakeOfferButton from "@/components/token/MakeOfferButton";
 import Events from "@/components/token/Events";
 import client from "@/lib/client"; // Ensure this is correctly configured
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
+import { REETH_ADDRESS } from "@/const/contracts";
 
 type TokenDetailsProps = {
   tokenAddress: string;
@@ -25,8 +26,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ tokenAddress, tokenId, nftE
 
   const nftprice = directListing?.currencyValuePerToken.displayValue
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
-  const usdPrice = nftprice ? parseFloat(nftprice) * (reEthPrice ?? 0) : 0;
+  const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
+
+const usdPrice = nftprice
+    ? parseFloat(nftprice) * (directListing?.currencyContractAddress === REETH_ADDRESS ? reEthPrice ?? 0 : lockedTokenPrice ?? 0)
+    : 0;
   const formattedPrice = parseFloat(usdPrice.toString()).toFixed(2);
+
+  console.log('prices', nftprice, reEthPrice, usdPrice, formattedPrice)
 
 
   // Convert tokenId to bigint for the Events component

@@ -204,6 +204,8 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         })
       );
 
+      console.log('Listings:', listings);
+
       if (!isMounted) return;
 
       // Update the store with fetched listings only if they have changed
@@ -215,6 +217,7 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           endTime: listing.endTimeInSeconds,
           buyoutPricePerToken: listing.currencyValuePerToken.displayValue || '0',
           sellerAddress: listing.creatorAddress || '',
+          currencyContractAddress: listing.currencyContractAddress || '',
         }));
         setListings(sanitizedListings);
       } else {

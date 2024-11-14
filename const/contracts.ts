@@ -9,7 +9,7 @@ export const VENFT_API_ABI = veNFTAPIAbi;
 // Define your custom chain
 const chain = defineChain({
   id: 111188,
-  rpc: "https://real.drpc.org",
+  rpc: "https://111188.rpc.thirdweb.com/4a4edc92332d34cf43139040e19cd31e",
   nativeCurrency: {
     name: "Ether",
     symbol: "reETH",
@@ -22,6 +22,9 @@ export const NETWORK = chain;
 export const MARKETPLACE_ADDRESS = "0x90612F84Bc2CdC266038b35751806619DE3AAfA7";
 export const NFT_COLLECTION_ADDRESS = "0x99E35808207986593531D3D54D898978dB4E5B04";
 export const VENFT_API_ADDRESS = "0xbFD5D43671F6AADa2123FaeD83e9B8d1EddAB8cA";
+export const PEARL_ADDRESS = "0xCE1581d7b4bA40176f0e219b2CaC30088Ad50C7A";
+export const REETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"; // Replace with actual reETH address
+
 
 // Initialize your contracts
 export const MARKETPLACE = getContract({

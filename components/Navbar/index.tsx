@@ -39,7 +39,7 @@ export function Navbar() {
 
         <div className="flex items-center justify-center gap-4">
           {/* Discord Icon */}
-          <Link href="https://discord.gg/a3mtQ6Ub" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord">
+          <Link href="https://discord.gg/ggpTZkTFrA" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord">
             <FaDiscord className="w-6 h-6 text-white hover:text-[#7289DA] transition-colors duration-200 cursor-pointer" />
           </Link>
 

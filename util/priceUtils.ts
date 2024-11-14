@@ -45,3 +45,43 @@ export const convertReEthToUsd = (
     return `${ratio.toFixed(2)}:1`;
   };
   
+
+  /**
+ * Converts Pearl amount to USD as a formatted string.
+ * @param pearlAmount - The amount in Pearl.
+ * @param lockedTokenPrice - The current price of Pearl in USD.
+ * @returns The equivalent USD value as a formatted string or "Loading..." if conversion isn't possible.
+ */
+export const convertPearlToUsd = (
+    pearlAmount: string | number,
+    lockedTokenPrice: number | null
+  ): string => {
+    const amount = typeof pearlAmount === "string" ? parseFloat(pearlAmount) : pearlAmount;
+    if (lockedTokenPrice && !isNaN(amount)) {
+      const usd = amount * lockedTokenPrice;
+      return `$${usd.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+    return "Loading...";
+  };
+  
+  /**
+   * Converts Pearl amount to USD as a number.
+   * @param pearlAmount - The amount in Pearl.
+   * @param lockedTokenPrice - The current price of Pearl in USD.
+   * @returns The equivalent USD value as a number or null if conversion isn't possible.
+   */
+  export const convertPearlToUsdNumber = (
+    pearlAmount: string | number,
+    lockedTokenPrice: number | null
+  ): number | null => {
+    const amount = typeof pearlAmount === "string" ? parseFloat(pearlAmount) : pearlAmount;
+    if (lockedTokenPrice && !isNaN(amount)) {
+      const usd = amount * lockedTokenPrice;
+      return usd;
+    }
+    return null;
+  };
+  
