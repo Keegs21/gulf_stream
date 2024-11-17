@@ -233,8 +233,8 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
                   <DirectListingButton
                     nft={nft}
                     pricePerToken={directListingState.price}
-                    endTimestamp={endTimestamp || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} // Default to 7 days from now if not selected
-                    currency={currency === "PEARL" ? PEARL_ADDRESS : undefined} // Conditionally pass currency
+                    endTimestamp={endTimestamp || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}
+                    currency={currency === "PEARL" ? PEARL_ADDRESS : undefined} 
                   />
                 )}
               </div>
