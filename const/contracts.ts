@@ -45,5 +45,11 @@ export const VENFT_API = getContract({
   chain: NETWORK,
 });
 
+export const PEARL = getContract({
+	  address: PEARL_ADDRESS,
+  client,
+  chain: NETWORK,
+});
+
 // (Optional) Set up the URL of where users can view transactions
 export const ETHERSCAN_URL = "https://explorer.re.al/";
