@@ -155,6 +155,7 @@ const NFTComponent: React.FC<Props> = ({
 
   console.log('nftcard nft', nft);
 
+  const unlockDate = nft?.metadata?.unlockData
 
   return (
     <div
@@ -206,6 +207,12 @@ const NFTComponent: React.FC<Props> = ({
               {displayLockedTokenAmount !== null
                 ? `${Number(displayLockedTokenAmount).toFixed(2)} ${tokenName}`
                 : "N/A"}
+            </p>
+            <p className="text-sm font-medium text-white truncate whitespace-nowrap">
+              Lock End Date
+            </p>
+            <p className="text-sm text-white/80 truncate whitespace-nowrap">
+              {unlockDate}
             </p>
           </div>
 

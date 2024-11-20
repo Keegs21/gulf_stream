@@ -164,7 +164,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
       filterable: true, // Enable filtering
       renderCell: (params) => {
         const formattedLockedTokens = params.value
-          ? `${params.value.nft.metadata.lockedTokenAmount.toFixed(2)} ${params.value.directListing.currencyValuePerToken.symbol}`
+          ? `${params.value.nft.metadata.lockedTokenAmount.toFixed(2)}`
           : "N/A";
         return <span>{formattedLockedTokens}</span>;
       },
@@ -205,7 +205,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
     },
     {
       field: "expiration",
-      headerName: "Expiration",
+      headerName: "Listing Expiration",
       width: 200,
       sortable: true, // Enable sorting
       filterable: true, // Enable filtering

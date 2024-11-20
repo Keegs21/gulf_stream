@@ -110,7 +110,8 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
           newNft.tokenId !== currentNft?.tokenId ||
           newNft.nft?.contractAddress !== currentNft?.nft?.contractAddress ||
           newNft.nft?.metadata.lockedTokenAmount !== currentNft?.nft?.metadata.lockedTokenAmount ||
-          newNft.nft?.metadata.assignedValue !== currentNft?.nft?.metadata.assignedValue
+          newNft.nft?.metadata.assignedValue !== currentNft?.nft?.metadata.assignedValue ||
+          newNft.nft?.metadata.unlockData !== currentNft?.nft?.metadata.unlockData
         );
       });
 

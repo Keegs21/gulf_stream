@@ -321,7 +321,6 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // New function to fetch vote data using SDK calls
   const fetchVoteData = useCallback(async () => {
-
     if (!nftData || nftData.length === 0) {
       console.warn('No nftData available to fetch vote data.');
       return;
@@ -330,32 +329,70 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const updatedNftData = await Promise.all(
         nftData.map(async (nftDataItem) => {
-
           try {
             // Determine NFT type based on contractAddress
             const nftContractAddress = nftDataItem.directListing?.assetContractAddress.toLowerCase();
-            const isVerwaNFT = nftContractAddress === VERWA.address.toLowerCase() || 
-                              nftContractAddress === RWA_LISTING.address.toLowerCase();
+            const isVerwaNFT =
+              nftContractAddress === VERWA.address.toLowerCase() ||
+              nftContractAddress === RWA_LISTING.address.toLowerCase();
 
             // Initialize variables
             let voteDataRaw: veNFT | any = null;
+            let unlockDataRaw: any = null;
+            let unlockData: string | null = null; // Declare unlockData outside the if-else
 
             if (isVerwaNFT) {
               console.log('Fetching vote data for RWA NFT:', nftDataItem.tokenId);
               // Fetch vote data from VERWA contract for RWA NFTs
               voteDataRaw = await readContract({
                 contract: verwaContract,
-                method: "getLockedAmount",
+                method: 'getLockedAmount',
                 params: [BigInt(nftDataItem.tokenId)],
               });
+
+              unlockDataRaw = await readContract({
+                contract: verwaContract,
+                method: 'getRemainingVestingDuration',
+                params: [BigInt(nftDataItem.tokenId)],
+              });
+
+              // Convert remaining vesting duration to a future date
+              if (unlockDataRaw && typeof unlockDataRaw === 'bigint') {
+                const durationSeconds = Number(unlockDataRaw);
+                if (!isNaN(durationSeconds) && durationSeconds > 0) {
+                  unlockData = new Date(Date.now() + durationSeconds * 1000).toLocaleString('en-US', {
+                    timeZone: 'UTC',
+                  });
+                } else {
+                  console.warn('Invalid remaining vesting duration:', unlockDataRaw);
+                  unlockData = null;
+                }
+              }
             } else {
               console.log('Fetching vote data for Pearl NFT:', nftDataItem.tokenId);
               // Fetch vote data from VENFT_API_ADDRESS contract for Pearl NFTs
               voteDataRaw = await readContract({
                 contract: venftContract,
-                method: "getNFTFromId",
+                method: 'getNFTFromId',
                 params: [BigInt(nftDataItem.tokenId)],
               });
+
+              console.log('Pearl Vote data raw:', voteDataRaw);
+
+              unlockDataRaw = voteDataRaw.lockEnd;
+
+              // Convert lockEnd UNIX timestamp to a human-readable date
+              if (unlockDataRaw && typeof unlockDataRaw === 'bigint') {
+                const lockEndTimestamp = Number(unlockDataRaw);
+                if (!isNaN(lockEndTimestamp) && lockEndTimestamp > 0) {
+                  unlockData = new Date(lockEndTimestamp * 1000).toLocaleString('en-US', {
+                    timeZone: 'UTC',
+                  });
+                } else {
+                  console.warn('Invalid lockEnd timestamp:', unlockDataRaw);
+                  unlockData = null;
+                }
+              }
             }
 
             // Check if voteDataRaw is valid
@@ -381,10 +418,10 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                   ...nftDataItem.nft?.metadata,
                   lockedTokenAmount,
                   assignedValue,
+                  unlockData, // Properly include unlockData here
                 },
               },
             };
-
           } catch (error: any) {
             console.error(`Error fetching vote data for tokenId ${nftDataItem.tokenId}:`, error);
             return nftDataItem;
@@ -397,7 +434,15 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (error: any) {
       console.error('Error in fetchVoteData:', error);
     }
-  }, [nftData, setNftData, lockedTokenPrice, venftContract, verwaContract]);
+  }, [
+    nftData,
+    setNftData,
+    lockedTokenPrice,
+    rwaPrice, // Ensure rwaPrice is included in dependencies if used
+    venftContract,
+    verwaContract,
+  ]);
+
 
   const fetchTotalVolume = async () => {
     try {
