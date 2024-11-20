@@ -13,7 +13,7 @@ import {
 } from "thirdweb/extensions/marketplace";
 import { approve, allowance } from "thirdweb/extensions/erc20";
 import { sendTransaction } from "thirdweb";
-import { MARKETPLACE, PEARL, NETWORK } from "@/const/contracts";
+import { MARKETPLACE, PEARL, RWA, REETH } from "@/const/contracts";
 import toastStyle from "@/util/toastConfig";
 import toast from "react-hot-toast";
 
@@ -30,13 +30,37 @@ export default function BuyListingButton({
 
   useEffect(() => {
     const checkAllowance = async () => {
-      if (!account || !PEARL || !directListing) return;
-      console.log("Checking PEARL token allowance...");
+      if (!account || !directListing) return;
+
+      console.log("Direct listing currency for allowance", directListing.currencyContractAddress);
+
+      // Normalize addresses to lowercase
+      const currencyAddress = directListing.currencyContractAddress.toLowerCase();
+      const pearlAddress = PEARL.address.toLowerCase();
+      const rwaAddress = RWA.address.toLowerCase();
+      const reethAddress = REETH.address.toLowerCase();
+
+      // Determine the token contract based on the currencyContractAddress
+      let tokenContract;
+      if (currencyAddress === pearlAddress) {
+        tokenContract = PEARL;
+      } else if (currencyAddress === rwaAddress) {
+        tokenContract = RWA;
+      } else if (currencyAddress === reethAddress || currencyAddress === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee") {
+        // reETH is the native coin; no allowance needed
+        console.log("Currency is reETH (native coin); skipping allowance check.");
+        setHasApproval(true); // Skip approval step
+        return;
+      } else {
+        console.error("Unsupported currency contract address");
+        return;
+      }
+
 
       try {
         // Fetch current allowance
         const currentAllowance = await allowance({
-          contract: PEARL,
+          contract: tokenContract,
           owner: account.address,
           spender: MARKETPLACE.address,
         });
@@ -58,61 +82,86 @@ export default function BuyListingButton({
     };
 
     checkAllowance();
-  }, [account, PEARL, directListing]);
+  }, [account, directListing]);
 
   return (
     <>
       {!hasApproval ? (
         <TransactionButton
-          transaction={async () => {
-            if (!account || !PEARL || !directListing)
-              throw new Error("Missing information");
-
-            console.log("Approving PEARL tokens...");
-
-            const requiredAmount = BigInt(directListing.pricePerToken) * BigInt(1);
-
-            // Prepare the approval transaction
-            const transaction = await approve({
-              contract: PEARL,
-              spender: MARKETPLACE.address,
-              amount: requiredAmount.toString(),
-            });
-            console.log("Approval transaction:", transaction);
-
-            // Send the approval transaction
-            const result = await sendTransaction({ transaction, account });
-            console.log("Approval result:", result);
-          }}
-          onTransactionSent={() => {
-            toast.loading("Approving tokens...", {
-              id: "approve",
-              style: toastStyle,
-              position: "bottom-center",
-            });
-          }}
-        //   onError={(error) => {
-        //     console.log("Approval error:", error);
-        //     toast(`Approval Failed!`, {
-        //       icon: "❌",
-        //       id: "approve",
-        //       style: toastStyle,
-        //       position: "bottom-center",
-        //     });
-        //   }}
-          onTransactionConfirmed={(txResult) => {
-            console.log("Approval confirmed:", txResult);
+        transaction={async () => {
+          if (!account || !directListing)
+            throw new Error("Missing information");
+      
+          console.log("Approving tokens...");
+      
+          // Normalize addresses
+          const currencyAddress = directListing.currencyContractAddress.toLowerCase();
+          const pearlAddress = PEARL.address.toLowerCase();
+          const rwaAddress = RWA.address.toLowerCase();
+          const reethAddress = REETH.address.toLowerCase();
+      
+          // Determine the token contract based on the currencyContractAddress
+          let tokenContract;
+          if (currencyAddress === pearlAddress) {
+            tokenContract = PEARL;
+          } else if (currencyAddress === rwaAddress) {
+            tokenContract = RWA;
+          } else if (
+            currencyAddress === reethAddress ||
+            currencyAddress === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          ) {
+            // reETH is the native coin; approval is not required
+            console.log("Currency is reETH (native coin); skipping approval.");
             setHasApproval(true);
-            toast("Approval Successful!", {
-              icon: "✅",
-              id: "approve",
-              style: toastStyle,
-              position: "bottom-center",
-            });
-          }}
-        >
-          Approve Tokens
-        </TransactionButton>
+            return;
+          } else {
+            throw new Error("Unsupported currency contract address");
+          }
+      
+          const requiredAmount =
+            BigInt(directListing.pricePerToken) * BigInt(1);
+      
+          // Prepare the approval transaction
+          const transaction = await approve({
+            contract: tokenContract,
+            spender: MARKETPLACE.address,
+            amount: requiredAmount.toString(),
+          });
+          console.log("Approval transaction:", transaction);
+      
+          // Send the approval transaction
+          const result = await sendTransaction({ transaction, account });
+          console.log("Approval result:", result);
+        }}
+        onTransactionSent={() => {
+          toast.loading("Approving tokens...", {
+            id: "approve",
+            style: toastStyle,
+            position: "bottom-center",
+          });
+        }}
+        onError={(error) => {
+          console.log("Approval error:", error);
+          toast(`Approval Failed!`, {
+            icon: "❌",
+            id: "approve",
+            style: toastStyle,
+            position: "bottom-center",
+          });
+        }}
+        onTransactionConfirmed={(txResult) => {
+          console.log("Approval confirmed:", txResult);
+          setHasApproval(true);
+          toast("Approval Successful!", {
+            icon: "✅",
+            id: "approve",
+            style: toastStyle,
+            position: "bottom-center",
+          });
+        }}
+      >
+        Approve Tokens
+      </TransactionButton>      
       ) : (
         <TransactionButton
           disabled={
@@ -133,7 +182,7 @@ export default function BuyListingButton({
                 contract: MARKETPLACE,
                 listingId: directListing.id,
                 recipient: account.address,
-                quantity: BigInt(1), 
+                quantity: BigInt(1),
                 currencyContractAddress: directListing.currencyContractAddress,
                 totalPrice: directListing.pricePerToken,
               };

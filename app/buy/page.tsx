@@ -10,6 +10,7 @@ import { useMarketplaceStore } from '@/store/useMarketplaceStore'; // Import the
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 
+
 const Buy: React.FC = () => {
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const router = useRouter();
@@ -19,9 +20,10 @@ const Buy: React.FC = () => {
   const loadingVolume = useMarketplaceStore((state) => state.loadingListings || state.loadingAuctions);
   const errorVolume = useMarketplaceStore((state) => state.error);
 
-  //pull reETH price from userstore
+  // Pull prices from the store
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
   const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
+  const rwaPrice = useMarketplaceStore((state) => state.rwaPrice);
 
   const handleToggle = (
     event: React.MouseEvent<HTMLElement>,
@@ -32,20 +34,46 @@ const Buy: React.FC = () => {
     }
   };
 
-  //calculate total volume in USD
+  // Calculate total volume in USD
   const totalVolumeUSD = reEthPrice !== null ? totalVolume * reEthPrice : 0;
-  //total volume USD to 2 decimal places
   const totalVolumeUSD2dp = totalVolumeUSD.toFixed(2);
-  //reETh price to 2 decimal places
   const reEthPrice2dp = parseFloat(reEthPrice).toFixed(2);
-  //locked token price to 2 decimal places
-  const lockedTokenPrice2dp = parseFloat(lockedTokenPrice).toFixed(2);
+  const lockedTokenPrice2dp = parseFloat(lockedTokenPrice).toFixed(4);
+  const rwaPrice2dp = parseFloat(rwaPrice).toFixed(4);
+
+  // Prepare token data
+  const tokens = [
+    {
+      name: 'reETH',
+      price: reEthPrice2dp,
+    },
+    {
+      name: 'Pearl',
+      price: lockedTokenPrice2dp,
+    },
+    {
+      name: 'RWA',
+      price: rwaPrice2dp,
+    },
+  ];
+
+  // PriceCard Component
+  const PriceCard = ({ token }) => (
+    <div className="bg-white/[.08] rounded-lg p-4 flex items-center space-x-4 w-64">
+      <div>
+        <p className="text-xl font-semibold text-white">{token.name}</p>
+        </div>
+        <div className="text-transparent bg-clip-text gradient-orange-blue text-lg sm:text-xl">
+        <p>${token.price}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="px-8 py-4">
       {/* Header Section with Total Volume */}
-	  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 bg-[#5dddff]/10 rounded-lg p-8">
-		<h1 className="text-4xl text-white font-bold">NFTs on Market</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 bg-[#5dddff]/10 rounded-lg p-8">
+        <h1 className="text-4xl text-white font-bold">NFTs on Market</h1>
         <div className="mt-4 sm:mt-0">
           {loadingVolume ? (
             <div className="flex items-center">
@@ -55,17 +83,16 @@ const Buy: React.FC = () => {
           ) : errorVolume ? (
             <span className="text-red-500">Error fetching volume</span>
           ) : (
-			<div className="flex flex-col space-y-2">
-			<span className="text-transparent bg-clip-text gradient-orange-blue text-lg sm:text-xl">
-			  Gulf Stream Total Volume: ${totalVolumeUSD2dp} ({totalVolume} reETH)
-			</span>
-			<span className="text-lg text-white">
-			  reETH Price: ${reEthPrice2dp}
-			</span>
-			<span className="text-lg text-white">
-			  Pearl Price: ${lockedTokenPrice2dp}
-			</span>
-		  </div>		  
+            <div>
+              <div className="text-transparent bg-clip-text gradient-orange-blue text-lg sm:text-xl mb-4">
+                Gulf Stream Total Volume: ${totalVolumeUSD2dp} ({totalVolume} reETH)
+              </div>
+              <div className="flex flex-wrap justify-center sm:justify-start space-x-4">
+                {tokens.map((token) => (
+                  <PriceCard key={token.name} token={token} />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -89,26 +116,22 @@ const Buy: React.FC = () => {
       </div>
 
       {/* Listing Grid/Table Section */}
-        {view === 'grid' ? (
-          <ListingGrid
-            emptyText={"Looks like there are no listed NFTs in this collection."}
-            overrideOnclickBehavior={(nft) => {
-              // Handle NFT click, e.g., navigate to detail page
-              // Example:
-              router.push(`/token/${nft.contractAddress}/${nft.id}`);
-            }}
-          />
-        ) : (
-          <ListingTable
-            emptyText={"Looks like there are no listed NFTs in this collection."}
-            overrideOnclickBehavior={(nft) => {
-              // Handle NFT click, e.g., navigate to detail page
-              // Example:
-              router.push(`/token/${nft.contractAddress}/${nft.id}`);
-            }}
-          />
-        )}
-      </div>
+      {view === 'grid' ? (
+        <ListingGrid
+          emptyText={"Looks like there are no listed NFTs in this collection."}
+          overrideOnclickBehavior={(nft) => {
+            router.push(`/token/${nft.contractAddress}/${nft.id}`);
+          }}
+        />
+      ) : (
+        <ListingTable
+          emptyText={"Looks like there are no listed NFTs in this collection."}
+          overrideOnclickBehavior={(nft) => {
+            router.push(`/token/${nft.contractAddress}/${nft.id}`);
+          }}
+        />
+      )}
+    </div>
   );
 };
 

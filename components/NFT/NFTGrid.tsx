@@ -1,4 +1,5 @@
 // src/components/NFT/NFTGrid.tsx
+
 import React from "react";
 import NFTComponent from "./NFT"; // Ensure correct import
 
@@ -13,24 +14,31 @@ export type NFTData = {
       [key: string]: any; // Add other metadata fields as needed
     };
     owner?: string;
+    lockedTokenAmount?: number; // Optional, might be undefined for some NFTs
+    assignedValue?: number; // Optional, might be undefined for some NFTs
     // Add other NFT properties as needed
   };
   directListing?: {
     currencyValuePerToken: {
       displayValue: string;
       symbol: string;
+      currencyContractAddress: string; // Ensure this is included
     };
+    endTimeInSeconds: number; // Assuming this exists
     // Add other DirectListing properties as needed
   };
   auctionListing?: {
     buyoutCurrencyValue: {
       displayValue: string;
       symbol: string;
+      currencyContractAddress: string; // Ensure this is included
     };
     minimumBidCurrencyValue: {
       displayValue: string;
       symbol: string;
+      currencyContractAddress: string; // Ensure this is included
     };
+    endTimeInSeconds: number; // Assuming this exists
     // Add other EnglishAuction properties as needed
   };
 };
@@ -58,7 +66,7 @@ const NFTGrid: React.FC<NFTGridProps> = ({ nftData, emptyText, overrideOnclickBe
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-8">
       {nftData.map((nft) => (
         <NFTComponent
-          key={nft.tokenId}
+          key={`${nft.nft?.contractAddress}-${nft.tokenId}`} // Unique key combining contractAddress and tokenId
           tokenId={nft.tokenId}
           nft={nft.nft}
           directListing={nft.directListing}

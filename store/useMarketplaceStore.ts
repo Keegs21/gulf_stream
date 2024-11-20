@@ -4,7 +4,6 @@ import { create } from 'zustand';
 import { MARKETPLACE } from '@/const/contracts';
 
 // Define Interfaces
-
 export interface SanitizedDirectListing {
   id: string;
   assetContractAddress: string;
@@ -60,18 +59,24 @@ export interface MarketplaceState {
   nftData: NFTData[];
   reEthPrice: number | null;
   lockedTokenPrice: number | null;
-  totalVolume: number; // New State Variable
+  totalVolume: number; // Existing State Variable
+  rwaPrice: number | null; // New State Variable
+
   loadingListings: boolean;
   loadingAuctions: boolean;
+
+  // Existing setter functions
   setListings: (listings: SanitizedDirectListing[]) => void;
   setAuctions: (auctions: SanitizedEnglishAuction[]) => void;
   setNftData: (nftData: NFTData[]) => void;
   setReEthPrice: (price: number | null) => void;
   setLockedTokenPrice: (price: number | null) => void;
-  setTotalVolume: (volume: number) => void; // New Setter Function
+  setTotalVolume: (volume: number) => void;
   setLoadingListings: (loading: boolean) => void;
   setLoadingAuctions: (loading: boolean) => void;
-  // Add other actions as needed
+
+  // New setter function
+  setRwaPrice: (price: number | null) => void;
 }
 
 export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
@@ -81,19 +86,17 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   reEthPrice: null,
   lockedTokenPrice: null,
   totalVolume: 0, // Initialize totalVolume
+  rwaPrice: null, // Initialize rwaPrice
+
   loadingListings: false,
   loadingAuctions: false,
+
+  // Existing setter functions
   setListings: (listings) => {
-    set(() => ({
-      listings: listings,
-      // Optionally, update nftData if listings are linked to NFTs
-    }));
+    set({ listings });
   },
   setAuctions: (auctions) => {
-    set(() => ({
-      auctions: auctions,
-      // Optionally, update nftData if auctions are linked to NFTs
-    }));
+    set({ auctions });
   },
   setNftData: (nftData) => {
     const currentNftData = get().nftData;
@@ -118,7 +121,10 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
   setReEthPrice: (price) => set({ reEthPrice: price }),
   setLockedTokenPrice: (price) => set({ lockedTokenPrice: price }),
-  setTotalVolume: (volume) => set({ totalVolume: volume }), // Implement setter
+  setTotalVolume: (volume) => set({ totalVolume: volume }), 
   setLoadingListings: (loading) => set({ loadingListings: loading }),
   setLoadingAuctions: (loading) => set({ loadingAuctions: loading }),
+
+  // New setter function
+  setRwaPrice: (price) => set({ rwaPrice: price }),
 }));

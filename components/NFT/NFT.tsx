@@ -4,18 +4,18 @@
 import React from "react";
 import { MediaRenderer } from "thirdweb/react";
 import { useRouter } from "next/navigation";
-import { NFT_COLLECTION } from "@/const/contracts";
-import client from "@/lib/client";
-import { useUserStore, NFTWithAssignedValue } from "@/store/useUserStore"; // Import the extended NFT type
+import { useUserStore, NFTWithAssignedValue } from "@/store/useUserStore";
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
-import { ethers } from "ethers"; // Import ethers for conversion
-import { Cross1Icon } from '@radix-ui/react-icons'; // Ensure this is imported if used
+import { ethers } from "ethers";
+import { Cross1Icon } from '@radix-ui/react-icons';
+import { VERWA_ADDRESS, PEARL_ADDRESS, REETH_ADDRESS, NFT_COLLECTION_ADDRESS, RWALISTING_ADDRESS, VERWA, RWA_LISTING, RWA_ADDRESS } from "@/const/contracts";
+import Image from 'next/image'; // Import Next.js Image component if needed
 
 type Props = {
   tokenId: string;
   nft?: NFTWithAssignedValue['nft'];
-  directListing?: NFTWithAssignedValue['directListing'];
-  auctionListing?: NFTWithAssignedValue['auctionListing'];
+  directListing?: any;
+  auctionListing?: any;
   overrideOnclickBehavior?: (nft: any) => void;
 };
 
@@ -29,6 +29,7 @@ const NFTComponent: React.FC<Props> = ({
   const router = useRouter();
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
   const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
+  const rwaPrice = useMarketplaceStore((state) => state.rwaPrice);
 
   // Retrieve user data if available
   const userNFT = useUserStore((state) =>
@@ -53,7 +54,7 @@ const NFTComponent: React.FC<Props> = ({
     currencyAddress: string | undefined
   ): string => {
     const parsedAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-    
+
     if (isNaN(parsedAmount)) {
       return "Invalid Amount";
     }
@@ -62,19 +63,21 @@ const NFTComponent: React.FC<Props> = ({
       return "Currency Not Specified";
     }
 
-    // Define your known currency addresses
-    const PEARL_ADDRESS = "0xCE1581d7b4bA40176f0e219b2CaC30088Ad50C7A"; // Replace with actual PEARL address
-    const REETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"; // Replace with actual reETH address
-
-    if (directListing.currencyContractAddress.toLowerCase() === PEARL_ADDRESS.toLowerCase()) {
+    if (currencyAddress.toLowerCase() === PEARL_ADDRESS.toLowerCase()) {
       if (lockedTokenPrice && !isNaN(lockedTokenPrice)) {
         const usd = parsedAmount * lockedTokenPrice;
         return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
       return "Loading...";
-    } else if (directListing.currencyContractAddress.toLowerCase() === REETH_ADDRESS.toLowerCase()) {
+    } else if (currencyAddress.toLowerCase() === REETH_ADDRESS.toLowerCase()) {
       if (reEthPrice && !isNaN(reEthPrice)) {
         const usd = parsedAmount * reEthPrice;
+        return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+      return "Loading...";
+    } else if (currencyAddress.toLowerCase() === RWA_ADDRESS.toLowerCase()) {
+      if (rwaPrice && !isNaN(rwaPrice)) {
+        const usd = parsedAmount * rwaPrice;
         return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
       return "Loading...";
@@ -89,8 +92,6 @@ const NFTComponent: React.FC<Props> = ({
     return new Date(timestampNumber * 1000).toLocaleString();
   };
 
-  console.log('directListing', directListing);
-
   const listingEndTime = directListing
     ? formatTimestamp(directListing.endTimeInSeconds)
     : auctionListing
@@ -98,26 +99,62 @@ const NFTComponent: React.FC<Props> = ({
     : "Unknown";
 
   // Determine which data to display for Locked Amount and Estimated Value
-  const displayLockedTokenAmount =
-    marketplaceNFT?.nft?.metadata.lockedTokenAmount !== undefined && marketplaceNFT.nft.metadata.lockedTokenAmount > 0
-      ? marketplaceNFT.nft.metadata.lockedTokenAmount
-      : userNFT?.lockedTokenAmount !== undefined && userNFT.lockedTokenAmount > 0
-      ? userNFT.lockedTokenAmount
-      : null;
+  const getLockedTokenAmount = () => {
+    if (marketplaceNFT?.nft) {
+      const amount = marketplaceNFT.nft.lockedTokenAmount ?? marketplaceNFT.nft.metadata?.lockedTokenAmount;
+      if (amount !== undefined && amount > 0) return amount;
+    }
+    if (userNFT) {
+      const amount = userNFT.lockedTokenAmount ?? userNFT.metadata?.lockedTokenAmount;
+      if (amount !== undefined && amount > 0) return amount;
+    }
+    return null;
+  };
 
-  const displayAssignedValue =
-    marketplaceNFT?.nft?.metadata.assignedValue !== undefined && marketplaceNFT.nft.metadata.assignedValue > 0
-      ? marketplaceNFT.nft.metadata.assignedValue
-      : userNFT?.assignedValue !== undefined && userNFT.assignedValue > 0
-      ? userNFT.assignedValue
-      : null;
+  const getAssignedValue = () => {
+    if (marketplaceNFT?.nft) {
+      const value = marketplaceNFT.nft.assignedValue ?? marketplaceNFT.nft.metadata?.assignedValue;
+      if (value !== undefined && value > 0) return value;
+    }
+    if (userNFT) {
+      const value = userNFT.assignedValue ?? userNFT.metadata?.assignedValue;
+      if (value !== undefined && value > 0) return value;
+    }
+    return null;
+  };
+
+  const displayLockedTokenAmount = getLockedTokenAmount();
+  const displayAssignedValue = getAssignedValue();
 
   // Extract the currency address from the listing
   const listingCurrencyAddress = directListing
-    ? directListing.currency
+    ? directListing.currencyContractAddress
     : auctionListing
-    ? auctionListing.currency
+    ? auctionListing.currencyContractAddress
     : undefined;
+
+  // Constants
+
+  // Determine NFT type based on contractAddress
+  const nftContractAddress = nft?.contractAddress?.toLowerCase();
+  const nftContractAddress2 = directListing?.assetContractAddress?.toLowerCase();
+  const isPearlNFT = nftContractAddress === PEARL_ADDRESS.toLowerCase();
+
+  // Corrected isVerwaNFT condition
+  const isVerwaNFT = 
+    nftContractAddress === VERWA_ADDRESS.toLowerCase() || 
+    nftContractAddress === RWA_LISTING.address.toLowerCase() ||
+    nftContractAddress2 === VERWA_ADDRESS.toLowerCase() || 
+    nftContractAddress2 === RWA_LISTING.address.toLowerCase();
+
+
+
+  // Token and NFT Names
+  const tokenName = isVerwaNFT ? 'RWA' : 'Pearl';
+  const nftName = isVerwaNFT ? 'veRWA NFT' : nft?.metadata?.name || "Unnamed NFT";
+
+  console.log('nftcard nft', nft);
+
 
   return (
     <div
@@ -126,13 +163,23 @@ const NFTComponent: React.FC<Props> = ({
     >
       {/* NFT Image Section */}
       <div className="relative w-full h-64">
-        {nft?.metadata.image && (
+        {isVerwaNFT ? (
+          <img
+            src="/rwa_image.png" // Ensure this path is correct
+            alt="RWA NFT"
+            className="object-cover object-center w-full h-full rounded-t-lg"
+          />
+        ) : nft?.metadata?.image ? (
           <MediaRenderer
             src={nft.metadata.image}
             className="object-cover object-center w-full h-full rounded-t-lg"
-            loading="lazy" // Lazy loading for performance
-            alt={nft.metadata.name || `NFT ${tokenId}`} // Enhanced alt attribute
+            loading="lazy"
+            alt={nft?.metadata?.name || `NFT ${tokenId}`}
           />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full bg-gray-500 text-white text-lg rounded-t-lg">
+            Image
+          </div>
         )}
       </div>
 
@@ -141,7 +188,7 @@ const NFTComponent: React.FC<Props> = ({
         {/* NFT Name and ID */}
         <div>
           <p className="text-lg font-bold text-white truncate whitespace-nowrap">
-            {nft?.metadata.name || "Unnamed NFT"}
+            {nftName}
           </p>
           <p className="text-sm text-gray-400 truncate whitespace-nowrap">
             #{tokenId}
@@ -157,7 +204,7 @@ const NFTComponent: React.FC<Props> = ({
             </p>
             <p className="text-lg font-semibold text-white truncate whitespace-nowrap">
               {displayLockedTokenAmount !== null
-                ? `${Number(displayLockedTokenAmount).toFixed(2)} Pearl`
+                ? `${Number(displayLockedTokenAmount).toFixed(2)} ${tokenName}`
                 : "N/A"}
             </p>
           </div>
@@ -183,9 +230,9 @@ const NFTComponent: React.FC<Props> = ({
             </p>
             <p className="text-lg font-semibold text-white truncate whitespace-nowrap">
               {directListing
-                ? `${directListing.currencyValuePerToken.displayValue} ${directListing.currencyValuePerToken.symbol} (${calculateUsd(directListing.currencyValuePerToken.displayValue, directListing.currencyValuePerToken)})`
+                ? `${directListing.currencyValuePerToken.displayValue} ${directListing.currencyValuePerToken.symbol} (${calculateUsd(directListing.currencyValuePerToken.displayValue, listingCurrencyAddress)})`
                 : auctionListing
-                ? `${auctionListing.minimumBidCurrencyValue.displayValue} ${auctionListing.minimumBidCurrencyValue.symbol} (${calculateUsd(auctionListing.minimumBidCurrencyValue.displayValue, auctionListing.currency)})`
+                ? `${auctionListing.minimumBidCurrencyValue.displayValue} ${auctionListing.minimumBidCurrencyValue.symbol} (${calculateUsd(auctionListing.minimumBidCurrencyValue.displayValue, listingCurrencyAddress)})`
                 : "N/A"}
             </p>
           </div>
@@ -202,6 +249,7 @@ const NFTComponent: React.FC<Props> = ({
             </p>
           </div>
         )}
+
       </div>
     </div>
   );

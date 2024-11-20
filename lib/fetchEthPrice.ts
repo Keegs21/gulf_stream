@@ -5,17 +5,19 @@ import axios from 'axios';
 const TOKEN_API_URLS = {
   reETH: 'https://api.geckoterminal.com/api/v2/simple/networks/re-al/token_price/0x90c6e93849e06ec7478ba24522329d14a5954df4',
   lockedToken: 'https://api.geckoterminal.com/api/v2/simple/networks/re-al/token_price/0xce1581d7b4ba40176f0e219b2cac30088ad50c7a',
+  rwa: 'https://api.geckoterminal.com/api/v2/simple/networks/re-al/token_price/0x4644066f535ead0cde82d209df78d94572fcbf14' // Added RWA URL
 };
 
 /**
  * Fetches the current prices of multiple tokens in USD from GeckoTerminal.
- * @returns An object containing the prices of reETH and the locked token in USD.
+ * @returns An object containing the prices of reETH, the locked token, and RWA in USD.
  */
-export const fetchTokenPrices = async (): Promise<{ reETH: number | null; lockedToken: number | null }> => {
+export const fetchTokenPrices = async (): Promise<{ reETH: number | null; lockedToken: number | null; rwa: number | null }> => {
   try {
-    const [reEthResponse, lockedTokenResponse] = await Promise.all([
+    const [reEthResponse, lockedTokenResponse, rwaResponse] = await Promise.all([
       axios.get(TOKEN_API_URLS.reETH),
       axios.get(TOKEN_API_URLS.lockedToken),
+      axios.get(TOKEN_API_URLS.rwa) // Fetch RWA price
     ]);
 
     /**
@@ -50,13 +52,15 @@ export const fetchTokenPrices = async (): Promise<{ reETH: number | null; locked
 
     const reEthAddress = '0x90c6e93849e06ec7478ba24522329d14a5954df4';
     const lockedTokenAddress = '0xce1581d7b4ba40176f0e219b2cac30088ad50c7a';
+    const rwaAddress = '0x4644066f535ead0cde82d209df78d94572fcbf14'; // RWA Token Address
 
     const reEthPrice = extractPrice(reEthResponse.data, reEthAddress);
     const lockedTokenPrice = extractPrice(lockedTokenResponse.data, lockedTokenAddress);
+    const rwaPrice = extractPrice(rwaResponse.data, rwaAddress); // Extract RWA price
 
-    return { reETH: reEthPrice, lockedToken: lockedTokenPrice };
+    return { reETH: reEthPrice, lockedToken: lockedTokenPrice, rwa: rwaPrice };
   } catch (error) {
     console.error('Error fetching token prices:', error);
-    return { reETH: null, lockedToken: null };
+    return { reETH: null, lockedToken: null, rwa: null };
   }
 };

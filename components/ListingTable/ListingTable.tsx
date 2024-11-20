@@ -14,7 +14,7 @@ import {
   convertPearlToUsdNumber, 
   calculateSaleRatio 
 } from "@/util/priceUtils"; // Import the utility functions
-import { PEARL_ADDRESS, REETH_ADDRESS } from "@/const/contracts"; // Ensure REETH_ADDRESS is imported
+import { PEARL_ADDRESS, REETH_ADDRESS, RWA_ADDRESS } from "@/const/contracts"; // Ensure REETH_ADDRESS is imported
 
 type MarketGridProps = {
   overrideOnclickBehavior?: (nft: any) => void;
@@ -28,7 +28,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
   emptyText,
 }) => {
   // Fetch data from useMarketplaceStore
-  const { nftData, loadingListings, loadingAuctions, reEthPrice, lockedTokenPrice } = useMarketplaceStore();
+  const { nftData, loadingListings, loadingAuctions, reEthPrice, lockedTokenPrice, rwaPrice } = useMarketplaceStore();
 
   if (loadingListings || loadingAuctions) {
     return (
@@ -47,6 +47,8 @@ const ListingTable: React.FC<MarketGridProps> = ({
       </Box>
     );
   }
+  
+  console.log('nftData', nftData);
 
   const rows = nftData.map((nft) => {
     // Determine the price details based on listing type
@@ -66,6 +68,9 @@ const ListingTable: React.FC<MarketGridProps> = ({
       } else if (currencyAddress.toLowerCase() === REETH_ADDRESS.toLowerCase()) {
         usdPrice = convertReEthToUsd(reEthAmount, reEthPrice);
         usdPriceNumber = convertReEthToUsdNumber(reEthAmount, reEthPrice);
+      } else if (currencyAddress.toLowerCase() === RWA_ADDRESS.toLowerCase()) {
+        usdPrice = convertReEthToUsd(reEthAmount, rwaPrice);
+        usdPriceNumber = convertReEthToUsdNumber(reEthAmount, rwaPrice);
       } else {
         usdPrice = "Unknown Currency";
         usdPriceNumber = null;
@@ -109,7 +114,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
     return {
       id: nft.tokenId,
       name: nft.nft?.metadata.name || "Unnamed NFT",
-      image: nft.nft?.metadata.image || "",
+      image: nft.nft?.metadata.image || "NFT",
       tokenId: nft.tokenId,
       price: `${priceDisplay} (${usdPrice})`,
       type: nft.directListing
@@ -121,7 +126,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
       description: nft.nft?.metadata.description || "No description available.",
       createdAt: nft.nft?.metadata.createdAt || "Unknown",
       NFTValue: nft.nft?.metadata.assignedValue || 0, // Include NFTValue
-      lockedTokenAmount: nft.nft?.metadata.lockedTokenAmount || 0, // Include lockedTokenAmount
+      lockedTokenAmount: nft || 0, // Include lockedTokenAmount
       SaleRatio: saleRatio, // Include SaleRatio
       // Add any additional fields you require
     };
@@ -134,16 +139,21 @@ const ListingTable: React.FC<MarketGridProps> = ({
       width: 100,
       sortable: false,
       renderCell: (params) => (
-        <Image
+        <img
           src={params.value}
-          alt={`${params.row.name} Image`} // Enhanced alt attribute
+          alt="NFT Image" // Descriptive alt text
           width={50}
           height={50}
           style={{ objectFit: "cover", borderRadius: "8px" }}
           loading="lazy" // Lazy loading for performance
+          onError={(e) => {
+            if (e.target.src !== '/rwa_image2.png') {
+              e.target.src = '/rwa_image2.png'; // Set fallback image on error
+            }
+          }}
         />
       ),
-    },
+    },    
     { field: "tokenId", headerName: "Token ID", width: 100 },
     { field: "type", headerName: "Listing Type", width: 150 },
     {
@@ -154,7 +164,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
       filterable: true, // Enable filtering
       renderCell: (params) => {
         const formattedLockedTokens = params.value
-          ? `${params.value.toFixed(2)} Pearl`
+          ? `${params.value.nft.metadata.lockedTokenAmount.toFixed(2)} ${params.value.directListing.currencyValuePerToken.symbol}`
           : "N/A";
         return <span>{formattedLockedTokens}</span>;
       },

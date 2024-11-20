@@ -7,9 +7,31 @@ export interface NFTWithAssignedValue extends NFT {
   lockedTokenAmount: number;
   assignedValue: number;
   amount: string;           // Amount from vote contract
+  contractAddress: string;  // Added contractAddress for uniqueness
 }
 
 export interface VoteData {
+  tokenSymbol: string;
+  tokenDecimals: number;
+  voting_amount: string;
+  voted: boolean;
+  venft: Array<{
+    id: number;
+    amount: string;
+    rebase_amount: string;
+    lockEnd: number;
+    vote_ts: number;
+    account: string;
+    token: string;
+  }>;
+  votes: Array<{
+    pair: string;
+    weight: string;
+  }>;
+}
+
+// **New Interface for VERWA Vote Data**
+export interface VoteDataVerwa {
   tokenSymbol: string;
   tokenDecimals: number;
   voting_amount: string;
@@ -35,13 +57,15 @@ type UserStore = {
   loadingNFTs: boolean;
   reETHPrice: number | null;
   lockedTokenPrice: number | null;
-  voteData: VoteData | null;
+  voteDataVenft: VoteData | null; // Renamed for clarity
+  voteDataVerwa: VoteDataVerwa | null; // New field for VERWA
   setAccount: (account?: string) => void;
   setOwnedNFTs: (nfts: NFTWithAssignedValue[]) => void;
   setLoadingNFTs: (loading: boolean) => void;
   setReEthPrice: (price: number | null) => void;
   setLockedTokenPrice: (price: number | null) => void;
-  setVoteData: (voteData: VoteData | null) => void;
+  setVoteDataVenft: (voteData: VoteData | null) => void; // New setter for VENFT
+  setVoteDataVerwa: (voteData: VoteDataVerwa | null) => void; // New setter for VERWA
 };
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -50,11 +74,13 @@ export const useUserStore = create<UserStore>((set) => ({
   loadingNFTs: false,
   reETHPrice: null,
   lockedTokenPrice: null,
-  voteData: null,
+  voteDataVenft: null, // Initialize VENFT vote data
+  voteDataVerwa: null, // Initialize VERWA vote data
   setAccount: (account) => set({ account }),
   setOwnedNFTs: (nfts) => set({ ownedNFTs: nfts }),
   setLoadingNFTs: (loading) => set({ loadingNFTs: loading }),
   setReEthPrice: (price) => set({ reETHPrice: price }),
   setLockedTokenPrice: (price) => set({ lockedTokenPrice: price }),
-  setVoteData: (voteData) => set({ voteData }),
+  setVoteDataVenft: (voteData) => set({ voteDataVenft: voteData }), // New setter for VENFT
+  setVoteDataVerwa: (voteData) => set({ voteDataVerwa: voteData }), // New setter for VERWA
 }));

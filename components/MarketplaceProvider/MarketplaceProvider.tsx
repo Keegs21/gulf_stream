@@ -2,7 +2,6 @@
 'use client';
 // src/components/MarketplaceDataProvider.tsx
 
-
 import React, { useEffect, useMemo, useRef, createContext, useCallback, useState } from 'react';
 import { useMarketplaceStore } from '@/store/useMarketplaceStore';
 import {
@@ -10,6 +9,10 @@ import {
   NETWORK,
   NFT_COLLECTION,
   VENFT_API_ADDRESS,
+  RWA_LISTING,
+  VERWA,
+  VERWA_ADDRESS,
+  RWALISTING_ADDRESS,
 } from '@/const/contracts';
 import {
   DirectListing,
@@ -17,10 +20,11 @@ import {
 } from 'thirdweb/extensions/marketplace';
 import { getNFT } from 'thirdweb/extensions/erc721';
 import isEqual from 'lodash/isEqual';
-import { fetchTokenPrices } from '@/lib/fetchEthPrice';
+import { fetchTokenPrices } from '@/lib/fetchEthPrice'; // Updated import path to include rwa
 import { useActiveAccount } from 'thirdweb/react';
 import { formatUnits } from 'ethers/lib/utils';
 import veNFTAPIAbi from '@/abis/VENFTABI.json'; // Ensure the path is correct
+import veRWAabi from '@/abis/VERWAABI.json'; // Ensure the path is correct
 import client from '@/lib/client';
 import { getContract, readContract, getContractEvents, prepareEvent } from 'thirdweb';
 import { ethers } from 'ethers';
@@ -74,6 +78,15 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, [chain]);
 
+  const verwaContract = useMemo(() => {
+    return getContract({
+      client,
+      chain,
+      address: VERWA_ADDRESS,
+      abi: veRWAabi, // Pass the ABI here
+    });
+  }, [chain]);
+
 
   const {
     setListings,
@@ -82,32 +95,40 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setReEthPrice,
     setTotalVolume, // New setter
     setLockedTokenPrice,
+    setRwaPrice, // **Added: Setter for rwaPrice**
     setLoadingListings,
     setLoadingAuctions,
     lockedTokenPrice,
+    rwaPrice,
     nftData,
     totalVolume,
   } = useMarketplaceStore();
 
-  const parseLockedTokenAmount = (voteDataRaw: veNFT | any): number => {
+  // **Added: Ref to track previous rwaPrice**
+  const prevRwaPriceRef = useRef<number | null>(null);
+
+  const parseLockedTokenAmount = (voteDataRaw: veNFT | bigint | any): number => {
     try {
-      // Ensure voteDataRaw is an object and has the 'amount' property
-      if (typeof voteDataRaw !== 'object' || voteDataRaw === null) {
-        console.warn('voteDataRaw is not a valid object:', voteDataRaw);
+      let amount: bigint;
+  
+      if (typeof voteDataRaw === 'bigint') {
+        // Directly received a BigInt
+        amount = voteDataRaw;
+      } else if (typeof voteDataRaw === 'object' && voteDataRaw !== null) {
+        if ('amount' in voteDataRaw) {
+          amount = BigInt(voteDataRaw.amount);
+        } else {
+          console.warn('voteDataRaw object does not have an "amount" field:', voteDataRaw);
+          return 0;
+        }
+      } else {
+        console.warn('voteDataRaw is neither a bigint nor a valid object:', voteDataRaw);
         return 0;
       }
-
-      if (!('amount' in voteDataRaw)) {
-        console.warn('voteDataRaw does not have an "amount" field:', voteDataRaw);
-        return 0;
-      }
-
-      // Access the 'amount' property directly
-      const amount = BigInt(voteDataRaw.amount); // voteDataRaw.amount corresponds to 'amount'
-
+  
       // Since 'decimals' isn't part of the veNFT struct, default to 18
       const decimals = 18;
-
+  
       // Convert the amount to a human-readable number using ethers.js formatUnits
       const formattedAmount = parseFloat(formatUnits(amount, decimals));
       return formattedAmount;
@@ -115,7 +136,7 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error('Error parsing locked token amount:', error);
       return 0;
     }
-  };
+  };  
 
   // Refs to store previous values to prevent unnecessary state updates
   const prevListingsRef = useRef<DirectListing[] | null>(null);
@@ -204,7 +225,6 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         })
       );
 
-      console.log('Listings:', listings);
 
       if (!isMounted) return;
 
@@ -229,8 +249,8 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           listings
             .filter(
               (l) =>
-                l.assetContractAddress.toLowerCase() ===
-                NFT_COLLECTION.address.toLowerCase()
+                l.assetContractAddress.toLowerCase() === NFT_COLLECTION.address.toLowerCase() ||
+                l.assetContractAddress.toLowerCase() === RWA_LISTING.address.toLowerCase()
             )
             .map((l) => l.tokenId.toString())
         )
@@ -270,24 +290,32 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   /**
-   * Fetch and set reETH price
+   * Fetch and set reETH, lockedToken, and rwa prices
    */
-  const fetchAndSetReEthPrice = async (setReEthPrice: (price: number | null) => void) => {
+  const fetchAndSetPrices = async () => { // Renamed for clarity
     try {
-      const price = await fetchTokenPrices();
+      const prices = await fetchTokenPrices();
       if (isMounted) {
-        if (!isEqual(prevReEthPriceRef.current, price.reETH)) {
-          prevReEthPriceRef.current = price.reETH;
-          setReEthPrice(price.reETH);
+        // Set reETH Price
+        if (!isEqual(prevReEthPriceRef.current, prices.reETH)) {
+          prevReEthPriceRef.current = prices.reETH;
+          setReEthPrice(prices.reETH);
         }
 
-        if (!isEqual(prevLockedTokenPriceRef.current, price.lockedToken)) {
-          prevLockedTokenPriceRef.current = price.lockedToken;
-          setLockedTokenPrice(price.lockedToken);
+        // Set lockedToken Price
+        if (!isEqual(prevLockedTokenPriceRef.current, prices.lockedToken)) {
+          prevLockedTokenPriceRef.current = prices.lockedToken;
+          setLockedTokenPrice(prices.lockedToken);
+        }
+
+        // **Set rwaPrice**
+        if (!isEqual(prevRwaPriceRef.current, prices.rwa)) {
+          prevRwaPriceRef.current = prices.rwa;
+          setRwaPrice(prices.rwa); // **Added: Update rwaPrice in the store**
         }
       }
     } catch (error) {
-      console.error('Error fetching reETH price:', error);
+      console.error('Error fetching token prices:', error);
     }
   };
 
@@ -299,28 +327,36 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return;
     }
 
-
     try {
       const updatedNftData = await Promise.all(
-        nftData.map(async (nftDataItem, index) => {
+        nftData.map(async (nftDataItem) => {
 
           try {
-            // Ensure venftContract is initialized
-            if (!venftContract) {
-              console.error('veNFT contract is not initialized.');
-              return nftDataItem;
+            // Determine NFT type based on contractAddress
+            const nftContractAddress = nftDataItem.directListing?.assetContractAddress.toLowerCase();
+            const isVerwaNFT = nftContractAddress === VERWA.address.toLowerCase() || 
+                              nftContractAddress === RWA_LISTING.address.toLowerCase();
+
+            // Initialize variables
+            let voteDataRaw: veNFT | any = null;
+
+            if (isVerwaNFT) {
+              console.log('Fetching vote data for RWA NFT:', nftDataItem.tokenId);
+              // Fetch vote data from VERWA contract for RWA NFTs
+              voteDataRaw = await readContract({
+                contract: verwaContract,
+                method: "getLockedAmount",
+                params: [BigInt(nftDataItem.tokenId)],
+              });
+            } else {
+              console.log('Fetching vote data for Pearl NFT:', nftDataItem.tokenId);
+              // Fetch vote data from VENFT_API_ADDRESS contract for Pearl NFTs
+              voteDataRaw = await readContract({
+                contract: venftContract,
+                method: "getNFTFromId",
+                params: [BigInt(nftDataItem.tokenId)],
+              });
             }
-
-            // Convert tokenId to BigInt
-            const tokenIdBigInt = BigInt(nftDataItem.tokenId);
-
-            // Call the contract function correctly
-            const voteDataRaw = await readContract({
-              contract: venftContract,
-              method: "getNFTFromId",
-              params: [tokenIdBigInt],
-            });
-
 
             // Check if voteDataRaw is valid
             if (!voteDataRaw) {
@@ -330,7 +366,12 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
             // Parse lockedTokenAmount and assignedValue
             const lockedTokenAmount = parseLockedTokenAmount(voteDataRaw);
-            const assignedValue = lockedTokenAmount * (lockedTokenPrice || 0);
+
+            // Determine the token price based on NFT type
+            const tokenPrice = isVerwaNFT ? (rwaPrice || 0) : (lockedTokenPrice || 0);
+
+            // Calculate the assigned value
+            const assignedValue = lockedTokenAmount * tokenPrice;
 
             return {
               ...nftDataItem,
@@ -343,6 +384,7 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 },
               },
             };
+
           } catch (error: any) {
             console.error(`Error fetching vote data for tokenId ${nftDataItem.tokenId}:`, error);
             return nftDataItem;
@@ -355,7 +397,7 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (error: any) {
       console.error('Error in fetchVoteData:', error);
     }
-  }, [nftData, setNftData, lockedTokenPrice, venftContract]);
+  }, [nftData, setNftData, lockedTokenPrice, venftContract, verwaContract]);
 
   const fetchTotalVolume = async () => {
     try {
@@ -391,26 +433,28 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Initial data fetch
     fetchData();
 
-    // Fetch reETH price on mount
-    fetchAndSetReEthPrice(setReEthPrice);
+    // Fetch prices on mount
+    fetchAndSetPrices(); // **Updated: Fetch and set all prices including rwa**
 
     // Fetch total volume
     fetchTotalVolume();
 
-    // Set up interval to fetch reETH price every 60 seconds
-    // const reEthPriceInterval = setInterval(() => {
-    //   fetchAndSetReEthPrice(setReEthPrice);
-    // }, 60000); // 60,000 ms = 60 seconds
+    // Set up interval to fetch prices every 60 seconds
+    const priceInterval = setInterval(() => {
+      fetchAndSetPrices(); // **Updated: Periodically fetch and set all prices**
+    }, 60000); // 60,000 ms = 60 seconds
 
     return () => {
       isMounted = false;
-      // clearInterval(reEthPriceInterval);
+      clearInterval(priceInterval); // **Updated: Clear the interval**
     };
   }, [
     setListings,
     setAuctions,
     setNftData,
     setReEthPrice,
+    setLockedTokenPrice,
+    setRwaPrice, // **Added: Include setRwaPrice in dependencies if needed**
     setLoadingListings,
     setLoadingAuctions,
   ]);

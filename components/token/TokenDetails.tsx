@@ -33,19 +33,24 @@ const usdPrice = nftprice
     : 0;
   const formattedPrice = parseFloat(usdPrice.toString()).toFixed(2);
 
-  console.log('prices', nftprice, reEthPrice, usdPrice, formattedPrice)
-
-
   // Convert tokenId to bigint for the Events component
   const tokenIdBigInt = useMemo(() => BigInt(tokenId), [tokenId]);
 
+  console.log('nft', nft);
+
   return (
     <div className="flex flex-col max-w-2xl gap-16 mx-auto mt-32 lg:max-w-full lg:flex-row">
-      <div className="flex flex-col flex-1">
-        <MediaRenderer
-          src={nft?.metadata.image}
-          client={client}
-          className="rounded-lg !w-full bg-white/[.04]"
+      <div className="flex flex-col items-center">
+        <img
+          src={nft?.metadata.image || '/rwa_image2.png'}
+          alt="NFT Image"
+          className="object-cover object-center max-w-md mx-auto rounded-lg"
+          loading="lazy"
+          onError={(e) => {
+            if (e.target.src !== '/rwa_image2.png') {
+              e.target.src = '/rwa_image2.png'; // Set fallback image on error
+            }
+          }}
         />
         <div className="flex items-center justify-between my-4">
           <div>
@@ -54,6 +59,12 @@ const usdPrice = nftprice
             </h1>
             <p className="mx-4 overflow-hidden text-ellipsis whitespace-nowrap">
               #{nft?.id.toString()}
+            </p>
+            <p className="mx-4 overflow-hidden text-ellipsis whitespace-nowrap">
+              Locked Tokens {parseFloat(nft?.metadata?.lockedTokenAmount).toFixed(2)}
+            </p>
+            <p className="mx-4 overflow-hidden text-ellipsis whitespace-nowrap">
+              Estimated Value ${parseFloat(nft?.metadata?.assignedValue).toFixed(2)}
             </p>
           </div>
 
@@ -75,10 +86,10 @@ const usdPrice = nftprice
             )}
           </div>
         </div>
-        {/* <div className="px-4">
+        <div className="px-4">
           <h3 className="mt-8">History</h3>
           <Events tokenId={tokenIdBigInt} />
-        </div> */}
+        </div>
       </div>
 
       <div className="flex-shrink sticky w-full min-w-[370px] lg:max-w-[450px]">
