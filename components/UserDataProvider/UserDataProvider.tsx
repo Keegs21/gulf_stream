@@ -152,20 +152,16 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 
       // **Process VENFT_API_ADDRESS NFTs**
       if (voteDataRawVenft && ownedNFTsCollection) {
-        console.log('Processing VENFT_API_ADDRESS NFTs');
         ownedNFTsCollection.forEach((nft: any) => {
-          console.log('Processing VENFT NFT:', nft);
           let lockedTokenAmount = 0;
 
           // Get corresponding venft data
           const correspondingVenft = voteDataRawVenft?.venft.find((v: any) => v.id === nft.id);
           if (correspondingVenft) {
-            console.log(`Found corresponding venft data for NFT ID ${nft.id}:`, correspondingVenft);
             try {
               // Convert the BigInt amount to a human-readable number using token decimals
               const formattedAmount = formatUnits(correspondingVenft.amount.toString(), voteDataRawVenft.tokenDecimals);
               lockedTokenAmount = parseFloat(formattedAmount);
-              console.log(`Formatted lockedTokenAmount for NFT ID ${nft.id}:`, lockedTokenAmount);
             } catch (error) {
               console.error(`Error formatting amount for NFT ID ${nft.id}:`, error);
               lockedTokenAmount = 0;
@@ -179,7 +175,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
           if (correspondingVenft && correspondingVenft.amount) {
             try {
               amount = BigInt(correspondingVenft.amount).toString();
-              console.log(`Converted amount for NFT ID ${nft.id}:`, amount);
             } catch (error) {
               console.error(`Error converting amount for NFT ID ${nft.id}:`, error);
             }
@@ -189,7 +184,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 
           // Calculate assigned value
           const assignedValue = lockedTokenAmount * (lockedTokenPrice || 0);
-          console.log(`Calculated assignedValue for NFT ID ${nft.id}:`, assignedValue);
 
           processedNFTs.push({
             ...nft,
@@ -204,16 +198,13 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 
       // **Process VERWA_ADDRESS NFTs**
       if (voteDataRawVerwa) {
-        console.log('Processing VERWA_ADDRESS NFTs');
         voteDataRawVerwa.forEach((nft: any) => {
-          console.log('Processing VERWA NFT:', nft);
           let lockedTokenAmount = 0;
 
           try {
             // Convert the BigInt lockedAmount to a human-readable number using token decimals
             const formattedAmount = formatUnits(nft.lockedAmount.toString(), voteDataRawVerwa.tokenDecimals);
             lockedTokenAmount = parseFloat(formattedAmount);
-            console.log(`Formatted lockedTokenAmount for VERWA NFT ID ${nft.tokenId}:`, lockedTokenAmount);
           } catch (error) {
             console.error(`Error formatting lockedAmount for VERWA NFT ID ${nft.tokenId}:`, error);
             lockedTokenAmount = 0;
@@ -221,7 +212,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 
           // Calculate assigned value
           const assignedValue = lockedTokenAmount * (lockedTokenPrice || 0);
-          console.log(`Calculated assignedValue for VERWA NFT ID ${nft.tokenId}:`, assignedValue);
 
           processedNFTs.push({
             ...nft,
@@ -234,8 +224,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
         });
       }
 
-      console.log('Processed NFTs:', processedNFTs);
-
       // **Set the combined processed NFTs to the store**
       setOwnedNFTs(processedNFTs);
     };
@@ -243,7 +231,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     const processVoteData = async () => {
       // **Process VENFT_API_ADDRESS Vote Data**
       if (voteDataRawVenft) {
-        console.log('Processing VENFT_API_ADDRESS Vote Data:', voteDataRawVenft);
         const processedVoteDataVenft: VoteData = {
           tokenSymbol: voteDataRawVenft.tokenSymbol,
           tokenDecimals: Number(voteDataRawVenft.tokenDecimals),
@@ -264,15 +251,12 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
           })),
         };
 
-        console.log('Processed VENFT_API_ADDRESS Vote Data:', processedVoteDataVenft);
-
         // **Set VENFT_API_ADDRESS Vote Data to the store**
         setVoteDataVenft(processedVoteDataVenft); // Updated to setVoteDataVenft
       }
 
       // **Added: Process VERWA_ADDRESS Vote Data**
       if (voteDataRawVerwa) {
-        console.log('Processing VERWA_ADDRESS Vote Data:', voteDataRawVerwa);
         const processedVoteDataVerwa: VoteDataVerwa = {
           tokenSymbol: 'VERWA', // Assuming token symbol for VERWA
           tokenDecimals: 18, // Assuming token decimals for VERWA
@@ -290,8 +274,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
           votes: [], // VERWA does not provide votes data
         };
 
-        console.log('Processed VERWA_ADDRESS Vote Data:', processedVoteDataVerwa);
-
         // **Set VERWA_ADDRESS Vote Data to the store**
         setVoteDataVerwa(processedVoteDataVerwa); // New setter for VERWA
       }
@@ -299,7 +281,6 @@ const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 
     // Update account only if it has changed
     if (prevAccountRef.current !== account?.address) {
-      console.log('Account changed:', account?.address);
       prevAccountRef.current = account?.address;
       setAccount(account?.address);
     }

@@ -16,6 +16,7 @@ import { sendTransaction } from "thirdweb";
 import { MARKETPLACE, PEARL, RWA, REETH } from "@/const/contracts";
 import toastStyle from "@/util/toastConfig";
 import toast from "react-hot-toast";
+import { ethers } from "ethers";
 
 export default function BuyListingButton({
   auctionListing,
@@ -32,10 +33,10 @@ export default function BuyListingButton({
     const checkAllowance = async () => {
       if (!account || !directListing) return;
 
-      // console.log(
-      //   "Direct listing currency for allowance",
-      //   directListing.currencyContractAddress
-      // );
+      console.log(
+        "Direct listing currency for allowance",
+        directListing.currencyContractAddress
+      );
 
       // Normalize addresses to lowercase
       const currencyAddress = directListing.currencyContractAddress.toLowerCase();
@@ -49,11 +50,13 @@ export default function BuyListingButton({
         tokenContract = PEARL;
       } else if (currencyAddress === rwaAddress) {
         tokenContract = RWA;
-      } else if (
-        currencyAddress === reethAddress ||
-        currencyAddress === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-      ) {
-        tokenContract = REETH; // Include reETH in the allowance check
+      } else if (currencyAddress === reethAddress) {
+        // reETH is the native currency; skip allowance check
+        console.log(
+          "Currency is reETH (native currency); skipping allowance check."
+        );
+        setHasApproval(true); // Skip approval step
+        return;
       } else {
         console.error("Unsupported currency contract address");
         return;
@@ -66,12 +69,12 @@ export default function BuyListingButton({
           owner: account.address,
           spender: MARKETPLACE.address,
         });
-        // console.log("Current allowance:", currentAllowance.toString());
+        console.log("Current allowance:", currentAllowance.toString());
 
         // Calculate required amount
         const requiredAmount =
           BigInt(directListing.pricePerToken) * BigInt(1);
-        // console.log("Required amount:", requiredAmount.toString());
+        console.log("Required amount:", requiredAmount.toString());
 
         // Check if allowance is sufficient
         if (BigInt(currentAllowance.toString()) >= requiredAmount) {
@@ -110,11 +113,13 @@ export default function BuyListingButton({
               tokenContract = PEARL;
             } else if (currencyAddress === rwaAddress) {
               tokenContract = RWA;
-            } else if (
-              currencyAddress === reethAddress ||
-              currencyAddress === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-            ) {
-              tokenContract = REETH; // Include reETH in the approval process
+            } else if (currencyAddress === reethAddress) {
+              // reETH is the native currency; skip approval
+              console.log(
+                "Currency is reETH (native currency); skipping approval."
+              );
+              setHasApproval(true); // Skip approval step
+              return;
             } else {
               throw new Error("Unsupported currency contract address");
             }
@@ -143,7 +148,7 @@ export default function BuyListingButton({
           }}
           onError={(error) => {
             console.log("Approval error:", error);
-            toast(`Approval Failed!`, {
+            toast(`Approval Failed! ${error.message}`, {
               icon: "❌",
               id: "approve",
               style: toastStyle,
@@ -153,7 +158,7 @@ export default function BuyListingButton({
           onTransactionConfirmed={(txResult) => {
             console.log("Approval confirmed:", txResult);
             setHasApproval(true);
-            toast("Approval Successful!", {
+            toast(`Approval Successful! ${txResult.message}`, {
               icon: "✅",
               id: "approve",
               style: toastStyle,
@@ -173,12 +178,20 @@ export default function BuyListingButton({
           transaction={async () => {
             if (!account) throw new Error("No account");
 
+            // Normalize addresses
+            const currencyAddress =
+              directListing?.currencyContractAddress.toLowerCase();
+            const reethAddress = REETH.address.toLowerCase();
+
             if (auctionListing) {
               return buyoutAuction({
                 contract: MARKETPLACE,
                 auctionId: auctionListing.id,
               });
             } else if (directListing) {
+              const requiredAmount =
+                BigInt(directListing.pricePerToken) * BigInt(1);
+
               const buyingParams: any = {
                 contract: MARKETPLACE,
                 listingId: directListing.id,
@@ -188,7 +201,6 @@ export default function BuyListingButton({
                   directListing.currencyContractAddress,
                 totalPrice: directListing.pricePerToken,
               };
-              console.log("Buying parameters:", buyingParams);
 
               return buyFromListing(buyingParams);
             } else {
@@ -204,7 +216,7 @@ export default function BuyListingButton({
           }}
           onError={(error) => {
             console.log("Purchase error:", error);
-            toast(`Purchase Failed!`, {
+            toast(`Purchase Failed! ${error.message}`, {
               icon: "❌",
               id: "buy",
               style: toastStyle,
