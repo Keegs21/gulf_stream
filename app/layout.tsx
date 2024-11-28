@@ -43,7 +43,7 @@ export default function RootLayout({
                 <Navbar />
                 <div className="w-screen min-h-screen">
                 {/* Full Width Content */}
-                  <div className="px-8 mt-32 w-full">{children}</div>
+                  <div className="px-8 mt-32 w-[90%] mx-auto">{children}</div>
                 </div>
               </MarketplaceDataProvider>
             </UserDataProvider>
