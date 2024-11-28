@@ -28,6 +28,10 @@ export function Navbar() {
 
         {/* Right Side */}
         <div className="flex items-center gap-4">
+            {/* 2% Fee Notification */}
+            <div className="flex items-center px-3 py-1 bg-gray-800 rounded-full text-sm">
+              <span>2% fee on marketplace</span>
+            </div>
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6 font-medium">
             <Link href="/buy" className="transition hover:text-white/100">Marketplace</Link>
@@ -56,11 +60,6 @@ export function Navbar() {
                 size: "compact",
               }}
             />
-
-            {/* 2% Fee Notification */}
-            <div className="flex items-center px-3 py-1 bg-gray-800 rounded-full text-sm">
-              <span>2% fee on marketplace</span>
-            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -78,6 +77,10 @@ export function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden bg-gray-900 text-white">
           <div className="px-4 py-2">
+            {/* 2% Fee Notification */}
+            <div className="flex items-center px-3 py-1 bg-gray-800 rounded-full text-sm mt-2">
+              <span>2% fee on marketplace</span>
+            </div>
             {/* Mobile Navigation Links */}
             <Link href="/buy">
               <a className="block py-2" onClick={() => setIsMenuOpen(false)}>Marketplace</a>
@@ -108,11 +111,6 @@ export function Navbar() {
                   size: "compact",
                 }}
               />
-            </div>
-
-            {/* 2% Fee Notification */}
-            <div className="flex items-center px-3 py-1 bg-gray-800 rounded-full text-sm mt-2">
-              <span>2% fee on marketplace</span>
             </div>
           </div>
         </div>

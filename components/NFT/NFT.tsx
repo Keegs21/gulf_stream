@@ -153,8 +153,6 @@ const NFTComponent: React.FC<Props> = ({
   const tokenName = isVerwaNFT ? 'RWA' : 'Pearl';
   const nftName = isVerwaNFT ? 'veRWA NFT' : nft?.metadata?.name || "Unnamed NFT";
 
-  console.log('nftcard nft', nft);
-
   const unlockDate = nft?.metadata?.unlockData
 
   return (

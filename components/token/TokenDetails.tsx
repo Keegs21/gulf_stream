@@ -39,7 +39,8 @@ const usdPrice = nftprice
   console.log('nft', nft);
 
   return (
-    <div className="flex flex-col max-w-2xl gap-16 mx-auto mt-32 lg:max-w-full lg:flex-row">
+    <div className="mt-40 p-6">
+      <div className="flex flex-col max-w-2xl gap-16 mx-auto lg:max-w-full lg:flex-row bg-gray-700 bg-opacity-40 p-8 rounded-lg shadow-lg">
       <div className="flex flex-col items-center">
         <img
           src={nft?.metadata.image || '/rwa_image2.png'}
@@ -154,6 +155,7 @@ const usdPrice = nftprice
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

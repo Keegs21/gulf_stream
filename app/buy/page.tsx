@@ -2,23 +2,28 @@
 //@ts-nocheck
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { CircularProgress, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import ListingGrid from "@/components/ListingGrid/ListingGrid"; // Ensure correct import path
 import ListingTable from "@/components/ListingTable/ListingTable"; // Ensure correct import path
 import { useMarketplaceStore } from '@/store/useMarketplaceStore'; // Import the store
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
+import { MarketplaceDataContext } from '@/components/MarketplaceProvider/MarketplaceProvider'; // Adjust the import path
+
 
 
 const Buy: React.FC = () => {
-  const [view, setView] = useState<'grid' | 'table'>('grid');
+  const [view, setView] = useState<'grid' | 'table'>('table');
   const router = useRouter();
+  const marketplaceDataContext = useContext(MarketplaceDataContext);
+
 
   // Access totalVolume, loading states, and error from the store
   const totalVolume = useMarketplaceStore((state) => state.totalVolume);
   const loadingVolume = useMarketplaceStore((state) => state.loadingListings || state.loadingAuctions);
   const errorVolume = useMarketplaceStore((state) => state.error);
+  const { nftData, loadingListings, listings } = useMarketplaceStore();
 
   // Pull prices from the store
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
@@ -33,6 +38,12 @@ const Buy: React.FC = () => {
       setView(newView);
     }
   };
+
+  useEffect(() => {
+    if (nftData.length > 0 && marketplaceDataContext?.fetchVoteData) {
+      marketplaceDataContext.fetchVoteData();
+    }
+  }, [nftData, marketplaceDataContext?.fetchVoteData]);
 
   // Calculate total volume in USD
   const totalVolumeUSD = reEthPrice !== null ? totalVolume * reEthPrice : 0;
@@ -69,8 +80,33 @@ const Buy: React.FC = () => {
     </div>
   );
 
+  // Duplicate Logic: Compute lockedTokenAmount for each NFT
+  const computeLockedTokenAmount = (nft) => {
+    // Retrieve marketplaceNFT
+    const marketplaceNFT = nftData.find((item) => item.tokenId === nft.tokenId)?.nft;
+
+    // Get lockedTokenAmount from marketplaceNFT or userNFT
+    const amount = marketplaceNFT?.metadata?.lockedTokenAmount
+
+    // Return parsed float or null
+    return amount !== undefined && amount > 0 ? parseFloat(amount) : null;
+  };
+
+  // Prepare a mapping of tokenId to lockedTokenAmount
+  const lockedTokenAmounts = nftData.reduce((acc, nft) => {
+    acc[nft.tokenId] = computeLockedTokenAmount(nft);
+    return acc;
+  }, {});
+
+  // Fetch all necessary data when the component mounts
+  useEffect(() => {
+    if (nftData.length > 0 && marketplaceDataContext?.fetchVoteData) {
+      marketplaceDataContext.fetchVoteData();
+    }
+  }, [nftData, marketplaceDataContext?.fetchVoteData]);
+
   return (
-    <div className="px-8 py-4">
+    <div className="px-8 py-8">
       {/* Header Section with Total Volume */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 bg-[#5dddff]/10 rounded-lg p-8">
         <h1 className="text-4xl text-white font-bold">NFTs on Market</h1>
@@ -84,33 +120,42 @@ const Buy: React.FC = () => {
             <span className="text-red-500">Error fetching volume</span>
           ) : (
             <div>
-              <div className="text-transparent bg-clip-text gradient-orange-blue text-lg sm:text-xl mb-4">
-                Gulf Stream Total Volume: ${totalVolumeUSD2dp} ({totalVolume} reETH)
-              </div>
               <div className="flex flex-wrap justify-center sm:justify-start space-x-4">
                 {tokens.map((token) => (
                   <PriceCard key={token.name} token={token} />
                 ))}
               </div>
+              <div className="text-transparent bg-clip-text gradient-orange-blue text-lg sm:text-xl mb-4">
+                Gulf Stream Total Volume: ${totalVolumeUSD2dp}
+              </div>
             </div>
           )}
         </div>
-      </div>
+        </div>
 
       {/* Toggle Buttons */}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-center mb-4">
         <ToggleButtonGroup
           value={view}
           exclusive
           onChange={handleToggle}
           aria-label="view toggle"
-          color="primary"
+          sx={{
+        '& .MuiToggleButton-root': {
+          color: 'white',
+          borderColor: 'orange',
+          '&.Mui-selected': {
+            color: 'orange',
+            borderColor: 'orange',
+          },
+        },
+          }}
         >
-          <ToggleButton value="grid" aria-label="grid view" sx={{ color: 'white' }}>
-            Grid View
+          <ToggleButton value="grid" aria-label="grid view">
+        Grid View
           </ToggleButton>
-          <ToggleButton value="table" aria-label="table view" sx={{ color: 'white' }}>
-            Table View
+          <ToggleButton value="table" aria-label="table view">
+        Table View
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
@@ -129,6 +174,7 @@ const Buy: React.FC = () => {
           overrideOnclickBehavior={(nft) => {
             router.push(`/token/${nft.contractAddress}/${nft.id}`);
           }}
+          lockedTokenAmounts={lockedTokenAmounts} // Pass the lockedTokenAmounts mapping
         />
       )}
     </div>

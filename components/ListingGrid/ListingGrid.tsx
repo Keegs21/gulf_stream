@@ -19,11 +19,11 @@ const ListingGridComponent: React.FC<Props> = ({ overrideOnclickBehavior, emptyT
 
   console.log('listings', listings);
 
-  useEffect(() => {
-    if (nftData.length > 0 && marketplaceDataContext?.fetchVoteData) {
-      marketplaceDataContext.fetchVoteData();
-    }
-  }, [nftData, marketplaceDataContext?.fetchVoteData]);
+  // useEffect(() => {
+  //   if (nftData.length > 0 && marketplaceDataContext?.fetchVoteData) {
+  //     marketplaceDataContext.fetchVoteData();
+  //   }
+  // }, [nftData, marketplaceDataContext?.fetchVoteData]);
 
 
   // Memoize the convertedNftData

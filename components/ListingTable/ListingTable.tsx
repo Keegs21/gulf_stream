@@ -26,6 +26,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
   overrideOnclickBehavior,
   customStyles = {},
   emptyText,
+  lockedTokenAmounts,
 }) => {
   // Fetch data from useMarketplaceStore
   const { nftData, loadingListings, loadingAuctions, reEthPrice, lockedTokenPrice, rwaPrice } = useMarketplaceStore();
@@ -126,7 +127,9 @@ const ListingTable: React.FC<MarketGridProps> = ({
       description: nft.nft?.metadata.description || "No description available.",
       createdAt: nft.nft?.metadata.createdAt || "Unknown",
       NFTValue: nft.nft?.metadata.assignedValue || 0, // Include NFTValue
-      lockedTokenAmount: nft || 0, // Include lockedTokenAmount
+      lockedTokenAmount: lockedTokenAmounts[nft.tokenId] !== null
+      ? lockedTokenAmounts[nft.tokenId].toFixed(2)
+      : "N/A", // Use the duplicated logic
       SaleRatio: saleRatio, // Include SaleRatio
       // Add any additional fields you require
     };
@@ -163,9 +166,8 @@ const ListingTable: React.FC<MarketGridProps> = ({
       sortable: true, // Enable sorting
       filterable: true, // Enable filtering
       renderCell: (params) => {
-        const formattedLockedTokens = params.value
-          ? `${params.value.nft.metadata.lockedTokenAmount.toFixed(2)}`
-          : "N/A";
+        const formattedLockedTokens =
+          typeof params.value === 'string' ? params.value : "N/A";
         return <span>{formattedLockedTokens}</span>;
       },
     },

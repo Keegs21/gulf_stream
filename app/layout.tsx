@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className="relative overflow-x-hidden max-w-screen">
         <div className="absolute top-0 left-0 right-0 w-screen h-screen -z-10">
           <Image
-            src="/hero-gradient.png"
+            src="/hero-asset2.png"
             width={1390}
             height={1390}
             alt="Background gradient from red to blue"
@@ -42,7 +42,8 @@ export default function RootLayout({
               <MarketplaceDataProvider>
                 <Navbar />
                 <div className="w-screen min-h-screen">
-                  <div className="px-8 mx-auto mt-32 max-w-7xl">{children}</div>
+                {/* Full Width Content */}
+                  <div className="px-8 mt-32 w-full">{children}</div>
                 </div>
               </MarketplaceDataProvider>
             </UserDataProvider>

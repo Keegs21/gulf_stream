@@ -16,6 +16,7 @@ import TextField from '@mui/material/TextField';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
+import { useUserStore } from "@/store/useUserStore"; // Adjust the path as necessary
 import { FaEthereum, FaGem, FaShieldAlt } from 'react-icons/fa'; // Importing Ethereum, Gem, and Shield icons from react-icons
 import { 
   convertReEthToUsd, 
@@ -53,6 +54,7 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
   const [currency, setCurrency] = useState<"reETH" | "PEARL" | "RWA">("reETH"); // Updated to include "RWA"
   const listings = useMarketplaceStore((state) => state.listings);
   const auctions = useMarketplaceStore((state) => state.auctions);
+  const { voteDataVenft, voteDataVerwa } = useUserStore();
   const directListing = listings.find(
     (listing) => listing.tokenId.toString() === nft.tokenId.toString()
   );
@@ -109,7 +111,12 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
     return "0.00";
   })();
 
+
   const isVerwaNFT = nft?.contractAddress?.toLowerCase() === VERWA_ADDRESS.toLowerCase();
+
+  const hasVoted = isVerwaNFT
+    ? voteDataVerwa?.voted
+    : voteDataVenft?.voted;
 
   const hasApproval = isVerwaNFT ? hasVeRWAApproval : hasPearlApproval;
   const approvalContractAddress = isVerwaNFT ? VERWA_ADDRESS : NFT_COLLECTION_ADDRESS;
@@ -255,26 +262,37 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
 
               {/* Buttons Section */}
               <div className="mt-6 flex flex-col space-y-4">
-                {!hasApproval ? (
-                  <ApprovalButton
-                    contractAddress={approvalContractAddress}
-                    label={approvalLabel}
-                  />
+                {hasVoted ? (
+                  // Disabled button indicating the NFT has already voted
+                  <button
+                    disabled
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-not-allowed"
+                  >
+                    Reset votes on Pearl
+                  </button>
                 ) : (
-                  <DirectListingButton
-                    nft={nft}
-                    pricePerToken={directListingState.price}
-                    endTimestamp={
-                      endTimestamp || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                    }
-                    currency={
-                      currency === "PEARL"
-                        ? PEARL_ADDRESS
-                        : currency === "reETH"
-                        ? REETH_ADDRESS
-                        : RWA_ADDRESS
-                    }
-                  />
+                  // Existing approval and listing buttons
+                  !hasApproval ? (
+                    <ApprovalButton
+                      contractAddress={approvalContractAddress}
+                      label={approvalLabel}
+                    />
+                  ) : (
+                    <DirectListingButton
+                      nft={nft}
+                      pricePerToken={directListingState.price}
+                      endTimestamp={
+                        endTimestamp || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                      }
+                      currency={
+                        currency === "PEARL"
+                          ? PEARL_ADDRESS
+                          : currency === "reETH"
+                          ? REETH_ADDRESS
+                          : RWA_ADDRESS
+                      }
+                    />
+                  )
                 )}
               </div>
             </>
