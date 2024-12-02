@@ -12,7 +12,8 @@ import {
   convertReEthToUsdNumber, 
   convertPearlToUsd, 
   convertPearlToUsdNumber, 
-  calculateSaleRatio 
+  calculateSaleRatio,
+  calculateSalePercentageDifference,
 } from "@/util/priceUtils"; // Import the utility functions
 import { PEARL_ADDRESS, REETH_ADDRESS, RWA_ADDRESS } from "@/const/contracts"; // Ensure REETH_ADDRESS is imported
 
@@ -109,7 +110,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
 
     // Calculate Sale Ratio
     const saleRatio = usdPriceNumber && nft.nft?.metadata.assignedValue > 0
-      ? calculateSaleRatio(usdPriceNumber, nft.nft.metadata.assignedValue)
+      ? calculateSalePercentageDifference(usdPriceNumber, nft.nft.metadata.assignedValue)
       : "N/A";
 
     return {

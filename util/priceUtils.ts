@@ -44,6 +44,37 @@ export const convertReEthToUsd = (
     const ratio = usdPrice / nftValue;
     return `${ratio.toFixed(2)}:1`;
   };
+
+
+/**
+ * Calculates the Sale Percentage Difference based on USD Price and NFT Value.
+ * @param usdPrice - The price of the NFT in USD.
+ * @param nftValue - The assigned value of the NFT.
+ * @returns The Sale Percentage Difference as a formatted string, e.g., "-25%" or "+320%".
+ */
+export const calculateSalePercentageDifference = (
+  usdPrice: number,
+  nftValue: number
+): string => {
+  if (nftValue === 0) return "N/A"; // Prevent division by zero
+
+  const ratio = usdPrice / nftValue;
+  const percentage = ratio * 100;
+
+  let percentageDifference: number;
+  let sign: string;
+
+  if (percentage >= 100) {
+    percentageDifference = percentage;
+    sign = "+";
+  } else {
+    percentageDifference = 100 - percentage;
+    sign = "-";
+  }
+
+  return `${sign}${percentageDifference.toFixed(0)}%`;
+};
+
   
 
   /**
