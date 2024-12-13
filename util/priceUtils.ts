@@ -59,21 +59,33 @@ export const calculateSalePercentageDifference = (
   if (nftValue === 0) return "N/A"; // Prevent division by zero
 
   const ratio = usdPrice / nftValue;
-  const percentage = ratio * 100;
+  let difference = (ratio - 1) * 100;
 
-  let percentageDifference: number;
-  let sign: string;
-
-  if (percentage >= 100) {
-    percentageDifference = percentage;
-    sign = "+";
-  } else {
-    percentageDifference = 100 - percentage;
-    sign = "-";
+  // Add a small tolerance for floating point errors
+  const epsilon = 0.0001; 
+  if (Math.abs(difference) < epsilon) {
+    difference = 0;
   }
 
-  return `${sign}${percentageDifference.toFixed(0)}%`;
+  // Determine the sign
+  let sign = "";
+  if (difference > 0) sign = "+";
+  if (difference < 0) sign = "-";
+
+  // Console logs for debugging
+  console.log("=== calculateSalePercentageDifference ===");
+  console.log("usdPrice:", usdPrice);
+  console.log("nftValue:", nftValue);
+  console.log("ratio:", ratio);
+  console.log("raw difference (ratio-1)*100:", (ratio - 1)*100);
+  console.log("adjusted difference after epsilon check:", difference);
+  console.log("sign:", sign);
+  console.log("=========================================");
+
+  // Use absolute value for display since sign is determined separately
+  return `${sign}${Math.abs(difference).toFixed(0)}%`;
 };
+
 
   
 
