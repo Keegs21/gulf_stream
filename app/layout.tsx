@@ -10,6 +10,7 @@ import '@/globals.css';
 import { Metadata } from 'next';
 import UserDataProvider from '@/components/UserDataProvider/UserDataProvider';
 import MarketplaceDataProvider from '@/components/MarketplaceProvider/MarketplaceProvider';
+import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Gulf Stream | NFT Marketplace',
@@ -45,6 +46,7 @@ export default function RootLayout({
                 {/* Full Width Content */}
                   <div className="px-8 mt-32 w-[90%] mx-auto">{children}</div>
                 </div>
+                <Footer />
               </MarketplaceDataProvider>
             </UserDataProvider>
             {/* </WagmiProvider> */}

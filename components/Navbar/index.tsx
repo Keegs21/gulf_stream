@@ -25,17 +25,14 @@ export function Navbar() {
           />
           <span className="text-transparent bg-clip-text gradient-orange-blue">Gulf Stream</span>
         </Link>
-        <div className="flex items-center px-3 py-1 bg-gray-800 rounded-full text-sm">
-          <span>2% fee on marketplace</span>
+        <div className="hidden md:flex items-center gap-6 font-medium">
+          <Link href="/buy" className="transition hover:text-white/100">Marketplace</Link>
+          <Link href="/sell" className="transition hover:text-white/100">Sell</Link>
         </div>
 
         {/* Right Side */}
         <div className="flex items-center gap-4">
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-6 font-medium">
-            <Link href="/buy" className="transition hover:text-white/100">Marketplace</Link>
-            <Link href="/sell" className="transition hover:text-white/100">Sell</Link>
-          </div>
 
           {/* Desktop Icons and Buttons */}
           <div className="hidden md:flex items-center gap-4">
@@ -49,25 +46,6 @@ export function Navbar() {
                 size: "compact",
               }}
             />
-            {/* Docs Icon Link */}
-            <Link href="https://docs.gulfstreamreal.com/" target="_blank" rel="noopener noreferrer" aria-label="Documentation">
-              <FaBook className="w-6 h-6 hover:text-white transition-colors duration-200 cursor-pointer" />
-            </Link>
-
-            {/* Discord Icon */}
-            <Link href="https://discord.gg/ggpTZkTFrA" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord">
-              <FaDiscord className="w-6 h-6 text-white hover:text-[#7289DA] transition-colors duration-200 cursor-pointer" />
-            </Link>
-
-            {/* Twitter Icon */}
-            <Link href="https://x.com/gulfstreamreal" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Twitter">
-              <FaTwitter className="w-6 h-6 hover:text-white transition-colors duration-200 cursor-pointer" />
-            </Link>
-
-            {/* Medium Icon */}
-            <Link href="https://medium.com/@gulfstreamreal" target="_blank" rel="noopener noreferrer" aria-label="Read our blog on Medium">
-              <FaMedium className="w-6 h-6 hover:text-white transition-colors duration-200 cursor-pointer" />
-            </Link>
           </div>
 
           {/* Mobile Menu Button */}
