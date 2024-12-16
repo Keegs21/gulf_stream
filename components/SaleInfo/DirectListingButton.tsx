@@ -22,8 +22,6 @@ export default function DirectListingButton({
 }) {
   const router = useRouter();
 
-  console.log("passed in contract addrress", nft.contractAddress);
-
   const assetContractAddress =
     nft.contractAddress.toLowerCase() === VERWA_ADDRESS.toLowerCase()
       ? RWALISTING_ADDRESS
@@ -32,7 +30,6 @@ export default function DirectListingButton({
   return (
     <TransactionButton
       transaction={() => {
-        console.log("Listing asset contract address", assetContractAddress);
         const listingParams: any = {
           contract: MARKETPLACE,
           assetContractAddress: assetContractAddress,

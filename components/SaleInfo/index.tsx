@@ -2,11 +2,11 @@
 'use client';
 
 import { NFT as NFTType } from "thirdweb";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { ADDRESS_ZERO } from "thirdweb";
 import { isApprovedForAll } from "thirdweb/extensions/erc721";
-import { MARKETPLACE, NFT_COLLECTION, PEARL_ADDRESS, REETH_ADDRESS, RWA_ADDRESS, VERWA_ADDRESS, VERWA, NFT_COLLECTION_ADDRESS, RWA_LISTING } from "@/const/contracts"; // Ensure RWA_ADDRESS is imported
+import { MARKETPLACE, NFT_COLLECTION, PEARL_ADDRESS, REETH_ADDRESS, RWA_ADDRESS, VERWA_ADDRESS, NFT_COLLECTION_ADDRESS, RWA_LISTING, USDC_ADDRESS } from "@/const/contracts";
 import DirectListingButton from "./DirectListingButton";
 import CancelListingButton from "./CancelListingButton";
 import cn from "classnames";
@@ -16,14 +16,11 @@ import TextField from '@mui/material/TextField';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
-import { useUserStore } from "@/store/useUserStore"; // Adjust the path as necessary
-import { FaEthereum, FaGem, FaShieldAlt } from 'react-icons/fa'; // Importing Ethereum, Gem, and Shield icons from react-icons
+import { useUserStore } from "@/store/useUserStore";
+import { FaEthereum, FaGem, FaShieldAlt, FaDollarSign } from 'react-icons/fa'; // Added FaDollarSign for USDC
 import { 
   convertReEthToUsd, 
-  convertReEthToUsdNumber, 
-  convertPearlToUsd, 
-  convertPearlToUsdNumber, 
-  calculateSaleRatio 
+  convertPearlToUsd
 } from "@/util/priceUtils";
 
 type SaleInfoProps = {
@@ -31,30 +28,35 @@ type SaleInfoProps = {
 };
 
 const INPUT_STYLES =
-  "block w-full py-3 px-4 pr-28 mb-4 bg-transparent border border-white text-base box-shadow-md rounded-lg"; // Increased pr-28 for more space
+  "block w-full py-3 px-4 pr-28 mb-4 bg-transparent border border-white text-base box-shadow-md rounded-lg";
 const LEGEND_STYLES = "mb-2 text-white/80";
 
 export default function SaleInfo({ nft }: SaleInfoProps) {
   const account = useActiveAccount();
   const [tab, setTab] = useState<"direct" | "auction">("direct");
+  
   const { data: hasPearlApproval } = useReadContract(isApprovedForAll, {
     contract: NFT_COLLECTION,
     owner: account?.address || ADDRESS_ZERO,
     operator: MARKETPLACE.address,
   });
+
   const { data: hasVeRWAApproval } = useReadContract(isApprovedForAll, {
     contract: RWA_LISTING,
     owner: account?.address || ADDRESS_ZERO,
     operator: MARKETPLACE.address,
   });
-  const [directListingState, setDirectListingState] = useState({
-    price: "0",
-  });
+
+  const [directListingState, setDirectListingState] = useState({ price: "0" });
   const [endTimestamp, setEndTimestamp] = useState<Date | null>(null);
-  const [currency, setCurrency] = useState<"reETH" | "PEARL" | "RWA">("reETH"); // Updated to include "RWA"
+
+  // Added USDC to the currency state type.
+  const [currency, setCurrency] = useState<"reETH" | "PEARL" | "RWA" | "USDC">("reETH");
+
   const listings = useMarketplaceStore((state) => state.listings);
   const auctions = useMarketplaceStore((state) => state.auctions);
   const { voteDataVenft, voteDataVerwa } = useUserStore();
+
   const directListing = listings.find(
     (listing) => listing.tokenId.toString() === nft.tokenId.toString()
   );
@@ -62,12 +64,15 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
     (auction) => auction.tokenId.toString() === nft.tokenId.toString()
   );
   const isListed = !!directListing || !!auctionListing;
-  // Fetch reEthPrice, lockedTokenPrice, and rwaPrice from the store
+
+  // Fetch prices from the store
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
   const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
-  const rwaPrice = useMarketplaceStore((state) => state.rwaPrice); // Added rwaPrice
+  const rwaPrice = useMarketplaceStore((state) => state.rwaPrice);
+  const usdcPrice = useMarketplaceStore((state) => state.usdcPrice); // Ensure this is set in the store
 
   const usdValue = (() => {
+    // Determine the USD value of the currently listed NFT price
     if (directListing) {
       const price = parseFloat(directListing.buyoutPricePerToken);
       const currencyAddress = directListing.currencyContractAddress.toLowerCase();
@@ -76,8 +81,10 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
         return convertPearlToUsd(price, lockedTokenPrice);
       } else if (currencyAddress === REETH_ADDRESS.toLowerCase()) {
         return convertReEthToUsd(price, reEthPrice);
-      } else if (currencyAddress === RWA_ADDRESS.toLowerCase()) { // Added RWA case
+      } else if (currencyAddress === RWA_ADDRESS.toLowerCase()) {
         return rwaPrice ? `$${(price * rwaPrice).toFixed(2)}` : "Loading...";
+      } else if (currencyAddress === USDC_ADDRESS.toLowerCase()) {
+        return usdcPrice ? `$${(price * usdcPrice).toFixed(2)}` : "Loading...";
       } else {
         return "Unknown Currency";
       }
@@ -89,8 +96,10 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
         return convertPearlToUsd(price, lockedTokenPrice);
       } else if (currencyAddress === REETH_ADDRESS.toLowerCase()) {
         return convertReEthToUsd(price, reEthPrice);
-      } else if (currencyAddress === RWA_ADDRESS.toLowerCase()) { // Added RWA case
+      } else if (currencyAddress === RWA_ADDRESS.toLowerCase()) {
         return rwaPrice ? `$${(price * rwaPrice).toFixed(2)}` : "Loading...";
+      } else if (currencyAddress === USDC_ADDRESS.toLowerCase()) {
+        return usdcPrice ? `$${(price * usdcPrice).toFixed(2)}` : "Loading...";
       } else {
         return "Unknown Currency";
       }
@@ -98,30 +107,26 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
     return "0.00";
   })();
 
-  // Compute USD value based on selected currency
+  // Compute USD value based on the currently entered listing price and selected currency
   const usdValue2 = (() => {
     const price = parseFloat(directListingState.price);
     if (currency === "reETH") {
       return reEthPrice ? `$${(price * reEthPrice).toFixed(2)}` : "0.00";
     } else if (currency === "PEARL") {
       return lockedTokenPrice ? `$${(price * lockedTokenPrice).toFixed(2)}` : "0.00";
-    } else if (currency === "RWA") { // Added RWA case
+    } else if (currency === "RWA") {
       return rwaPrice ? `$${(price * rwaPrice).toFixed(2)}` : "0.00";
+    } else if (currency === "USDC") {
+      return usdcPrice ? `$${(price * usdcPrice).toFixed(2)}` : "0.00";
     }
     return "0.00";
   })();
 
-
   const isVerwaNFT = nft?.contractAddress?.toLowerCase() === VERWA_ADDRESS.toLowerCase();
-
-  const hasVoted = isVerwaNFT
-    ? voteDataVerwa?.voted
-    : voteDataVenft?.voted;
-
+  const hasVoted = isVerwaNFT ? voteDataVerwa?.voted : voteDataVenft?.voted;
   const hasApproval = isVerwaNFT ? hasVeRWAApproval : hasPearlApproval;
   const approvalContractAddress = isVerwaNFT ? VERWA_ADDRESS : NFT_COLLECTION_ADDRESS;
   const approvalLabel = isVerwaNFT ? "Approve VeRWA" : "Approve PEARL";
-
 
   return (
     <>
@@ -138,7 +143,7 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
           >
             Direct Listing
           </h3>
-          {/* Uncomment if auction is enabled
+          {/* If you enable auctions, uncomment the following:
           <h3
             className={cn(
               "px-4 h-12 flex items-center justify-center text-base font-semibold cursor-pointer transition-all hover:text-white/80",
@@ -153,18 +158,14 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
         </div>
 
         {/* Direct listing fields */}
-        <div
-          className={cn(
-            tab === "direct" ? "flex" : "hidden",
-            "flex-col"
-          )}
-        >
-          {/* Conditional Rendering based on Listing Status */}
+        <div className={cn(tab === "direct" ? "flex" : "hidden", "flex-col")}>
           {!isListed ? (
             <>
-              {/* Input field for buyout price */}
               <legend className={cn(LEGEND_STYLES)}>
-                {currency === "reETH" ? "reETH Listing Price" : currency === "PEARL" ? "PEARL Listing Price" : "RWA Listing Price"} {/* Updated legend */}
+                {currency === "reETH" ? "reETH Listing Price" 
+                 : currency === "PEARL" ? "PEARL Listing Price" 
+                 : currency === "RWA" ? "RWA Listing Price" 
+                 : "USDC Listing Price"}
               </legend>
               <div className="relative">
                 <input
@@ -186,9 +187,7 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
               </div>
 
               {/* Currency Selector */}
-              <legend className={cn(LEGEND_STYLES)}>
-                Select Currency
-              </legend>
+              <legend className={cn(LEGEND_STYLES)}>Select Currency</legend>
               <div className="flex space-x-4 mb-4">
                 {/* reETH Button */}
                 <button
@@ -231,15 +230,28 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
                   )}
                   aria-label="Select RWA as listing currency"
                 >
-                  <FaShieldAlt className="w-5 h-5 mr-2" /> {/* Placeholder icon */}
+                  <FaShieldAlt className="w-5 h-5 mr-2" />
                   RWA
+                </button>
+
+                {/* USDC Button */}
+                <button
+                  onClick={() => setCurrency("USDC")}
+                  className={cn(
+                    "flex items-center px-4 py-2 border rounded-lg transition-colors duration-200",
+                    currency === "USDC"
+                      ? "bg-[#5dddff]/50 border-[#5dddff]"
+                      : "bg-transparent border-white hover:bg-[#5dddff]/20"
+                  )}
+                  aria-label="Select USDC as listing currency"
+                >
+                  <FaDollarSign className="w-5 h-5 mr-2" />
+                  USDC
                 </button>
               </div>
 
               {/* Datetime picker for listing duration using MUI */}
-              <legend className={cn(LEGEND_STYLES)}>
-                Listing Duration
-              </legend>
+              <legend className={cn(LEGEND_STYLES)}>Listing Duration</legend>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DateTimePicker
                   label="Select End Date and Time"
@@ -255,15 +267,13 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
                   }}
                   renderInput={(params) => <TextField {...params} className={cn(LEGEND_STYLES)} />}
                   disablePast
-                  // Optionally, set a maximum date (e.g., 30 days from now)
-                  // maxDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
                 />
               </LocalizationProvider>
 
               {/* Buttons Section */}
               <div className="mt-6 flex flex-col space-y-4">
                 {hasVoted ? (
-                  // Disabled button indicating the NFT has already voted
+                  // Disabled button if the NFT has already voted
                   <button
                     disabled
                     className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-not-allowed"
@@ -271,7 +281,6 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
                     Reset votes on Pearl
                   </button>
                 ) : (
-                  // Existing approval and listing buttons
                   !hasApproval ? (
                     <ApprovalButton
                       contractAddress={approvalContractAddress}
@@ -289,7 +298,9 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
                           ? PEARL_ADDRESS
                           : currency === "reETH"
                           ? REETH_ADDRESS
-                          : RWA_ADDRESS
+                          : currency === "RWA"
+                          ? RWA_ADDRESS
+                          : USDC_ADDRESS
                       }
                     />
                   )
@@ -297,68 +308,12 @@ export default function SaleInfo({ nft }: SaleInfoProps) {
               </div>
             </>
           ) : (
-            // If Listed, show Cancel Listing Button
+            // If already listed, show Cancel Listing Button
             <div className="mt-6 flex flex-col space-y-4">
               <CancelListingButton nft={directListing} />
             </div>
           )}
         </div>
-
-        {/* Auction listing fields (if enabled)
-        <div
-          className={cn(
-            tab === "auction" ? "flex" : "hidden",
-            "flex-col"
-          )}
-        >
-          <legend className={cn(LEGEND_STYLES)}>
-            Allow bids starting from
-          </legend>
-          <input
-            className={cn(INPUT_STYLES)}
-            step={0.000001}
-            type="number"
-            value={auctionListingState.minimumBidAmount}
-            onChange={(e) =>
-              setAuctionListingState({
-                ...auctionListingState,
-                minimumBidAmount: e.target.value,
-              })
-            }
-            placeholder="Enter minimum bid amount"
-          />
-
-          <legend className={cn(LEGEND_STYLES)}>
-            Buyout price
-          </legend>
-          <input
-            className={cn(INPUT_STYLES)}
-            type="number"
-            step={0.000001}
-            value={auctionListingState.buyoutPrice}
-            onChange={(e) =>
-              setAuctionListingState({
-                ...auctionListingState,
-                buyoutPrice: e.target.value,
-              })
-            }
-            placeholder="Enter buyout price"
-          />
-
-          {!hasApproval ? (
-            <ApprovalButton />
-          ) : (
-            <AuctionListingButton
-              nft={nft}
-              minimumBidAmount={
-                auctionListingState.minimumBidAmount
-              }
-              buyoutBidAmount={auctionListingState.buyoutPrice}
-            />
-          )}
-        </div>
-        */}
-
       </div>
 
       {/* Price Display Component */}

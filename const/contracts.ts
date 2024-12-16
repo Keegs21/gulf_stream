@@ -26,7 +26,8 @@ export const PEARL_ADDRESS = "0xCE1581d7b4bA40176f0e219b2CaC30088Ad50C7A";
 export const REETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 export const RWA_ADDRESS = "0x4644066f535ead0cde82d209df78d94572fcbf14";
 export const VERWA_ADDRESS = "0x42EfcE5C2DcCFD45aA441D9e57D8331382ee3725";
-export const RWALISTING_ADDRESS = "0xa7B4E29BdFf073641991b44B283FD77be9D7c0F4"; 
+export const RWALISTING_ADDRESS = "0xa7B4E29BdFf073641991b44B283FD77be9D7c0F4";
+export const USDC_ADDRESS = "0xc518A88c67CECA8B3f24c4562CB71deeB2AF86B7";
 
 
 // Initialize your contracts
@@ -74,6 +75,12 @@ export const VERWA = getContract({
 
 export const RWA_LISTING = getContract({
   address: RWALISTING_ADDRESS,
+  client,
+  chain: NETWORK,
+});
+
+export const USDC = getContract({
+  address: USDC_ADDRESS,
   client,
   chain: NETWORK,
 });

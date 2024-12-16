@@ -61,7 +61,7 @@ export interface MarketplaceState {
   lockedTokenPrice: number | null;
   totalVolume: number; // Existing State Variable
   rwaPrice: number | null; // New State Variable
-
+  usdcPrice: number | null; // Added usdcPrice here
   loadingListings: boolean;
   loadingAuctions: boolean;
 
@@ -70,6 +70,7 @@ export interface MarketplaceState {
   setAuctions: (auctions: SanitizedEnglishAuction[]) => void;
   setNftData: (nftData: NFTData[]) => void;
   setReEthPrice: (price: number | null) => void;
+  setUsdcPrice: (price: number | null) => void; 
   setLockedTokenPrice: (price: number | null) => void;
   setTotalVolume: (volume: number) => void;
   setLoadingListings: (loading: boolean) => void;
@@ -87,6 +88,8 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   lockedTokenPrice: null,
   totalVolume: 0, // Initialize totalVolume
   rwaPrice: null, // Initialize rwaPrice
+  usdcPrice: null, // Initialize USDC price
+
 
   loadingListings: false,
   loadingAuctions: false,
@@ -122,6 +125,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
   setReEthPrice: (price) => set({ reEthPrice: price }),
   setLockedTokenPrice: (price) => set({ lockedTokenPrice: price }),
+  setUsdcPrice: (price) => set({ usdcPrice: price }),
   setTotalVolume: (volume) => set({ totalVolume: volume }), 
   setLoadingListings: (loading) => set({ loadingListings: loading }),
   setLoadingAuctions: (loading) => set({ loadingAuctions: loading }),

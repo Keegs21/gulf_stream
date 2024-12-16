@@ -10,7 +10,7 @@ import MakeOfferButton from "@/components/token/MakeOfferButton";
 import Events from "@/components/token/Events";
 import client from "@/lib/client"; // Ensure this is correctly configured
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
-import { REETH_ADDRESS } from "@/const/contracts";
+import { REETH_ADDRESS, USDC_ADDRESS } from "@/const/contracts";
 
 type TokenDetailsProps = {
   tokenAddress: string;
@@ -24,19 +24,23 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ tokenAddress, tokenId, nftE
   const [randomColor1, randomColor2] = [randomColor(), randomColor()];
 
 
-  const nftprice = directListing?.currencyValuePerToken.displayValue
+  const nftprice = directListing?.currencyValuePerToken.displayValue;
   const reEthPrice = useMarketplaceStore((state) => state.reEthPrice);
   const lockedTokenPrice = useMarketplaceStore((state) => state.lockedTokenPrice);
+  const usdcPrice = useMarketplaceStore((state) => state.usdcPrice);
 
-const usdPrice = nftprice
-    ? parseFloat(nftprice) * (directListing?.currencyContractAddress === REETH_ADDRESS ? reEthPrice ?? 0 : lockedTokenPrice ?? 0)
+  const usdPrice = nftprice
+    ? parseFloat(nftprice) *
+      (directListing?.currencyContractAddress === REETH_ADDRESS
+        ? (reEthPrice ?? 0)
+        : directListing?.currencyContractAddress === USDC_ADDRESS
+        ? (usdcPrice ?? 1) // Default to 1 if usdcPrice is undefined
+        : (lockedTokenPrice ?? 0))
     : 0;
-  const formattedPrice = parseFloat(usdPrice.toString()).toFixed(2);
+  const formattedPrice = usdPrice.toFixed(2);
 
   // Convert tokenId to bigint for the Events component
   const tokenIdBigInt = useMemo(() => BigInt(tokenId), [tokenId]);
-
-  console.log('nft', nft);
 
   return (
     <div className="mt-40 p-6">

@@ -95,7 +95,8 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setReEthPrice,
     setTotalVolume, // New setter
     setLockedTokenPrice,
-    setRwaPrice, // **Added: Setter for rwaPrice**
+    setRwaPrice,
+    setUsdcPrice,
     setLoadingListings,
     setLoadingAuctions,
     lockedTokenPrice,
@@ -142,6 +143,8 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const prevListingsRef = useRef<DirectListing[] | null>(null);
   const prevReEthPriceRef = useRef<number | null>(null);
   const prevLockedTokenPriceRef = useRef<number | null>(null);
+  const prevUsdcPriceRef = useRef<number | null>(null); // Track previous USDC price
+
 
   let isMounted = true; // To prevent setting state on unmounted component
 
@@ -292,26 +295,33 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   /**
    * Fetch and set reETH, lockedToken, and rwa prices
    */
-  const fetchAndSetPrices = async () => { // Renamed for clarity
+  const fetchAndSetPrices = async () => {
     try {
       const prices = await fetchTokenPrices();
       if (isMounted) {
-        // Set reETH Price
+        // reETH price
         if (!isEqual(prevReEthPriceRef.current, prices.reETH)) {
           prevReEthPriceRef.current = prices.reETH;
           setReEthPrice(prices.reETH);
         }
 
-        // Set lockedToken Price
+        // lockedToken price
         if (!isEqual(prevLockedTokenPriceRef.current, prices.lockedToken)) {
           prevLockedTokenPriceRef.current = prices.lockedToken;
           setLockedTokenPrice(prices.lockedToken);
         }
 
-        // **Set rwaPrice**
+        // RWA price
         if (!isEqual(prevRwaPriceRef.current, prices.rwa)) {
           prevRwaPriceRef.current = prices.rwa;
-          setRwaPrice(prices.rwa); // **Added: Update rwaPrice in the store**
+          setRwaPrice(prices.rwa);
+        }
+
+        // USDC price (extracted from the coingecko "uni" response previously)
+        // Assuming we have `prices.usdc` from fetchTokenPrices (adjust if necessary)
+        if (prices.usdc !== undefined && !isEqual(prevUsdcPriceRef.current, prices.usdc)) {
+          prevUsdcPriceRef.current = prices.usdc;
+          setUsdcPrice(prices.usdc);
         }
       }
     } catch (error) {
@@ -342,7 +352,6 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             let unlockData: string | null = null; // Declare unlockData outside the if-else
 
             if (isVerwaNFT) {
-              console.log('Fetching vote data for RWA NFT:', nftDataItem.tokenId);
               // Fetch vote data from VERWA contract for RWA NFTs
               voteDataRaw = await readContract({
                 contract: verwaContract,
@@ -369,15 +378,12 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 }
               }
             } else {
-              console.log('Fetching vote data for Pearl NFT:', nftDataItem.tokenId);
               // Fetch vote data from VENFT_API_ADDRESS contract for Pearl NFTs
               voteDataRaw = await readContract({
                 contract: venftContract,
                 method: 'getNFTFromId',
                 params: [BigInt(nftDataItem.tokenId)],
               });
-
-              console.log('Pearl Vote data raw:', voteDataRaw);
 
               unlockDataRaw = voteDataRaw.lockEnd;
 
@@ -499,7 +505,8 @@ const MarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setNftData,
     setReEthPrice,
     setLockedTokenPrice,
-    setRwaPrice, // **Added: Include setRwaPrice in dependencies if needed**
+    setRwaPrice,
+    setUsdcPrice,
     setLoadingListings,
     setLoadingAuctions,
   ]);

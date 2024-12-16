@@ -17,8 +17,6 @@ const ListingGridComponent: React.FC<Props> = ({ overrideOnclickBehavior, emptyT
 
   const marketplaceDataContext = useContext(MarketplaceDataContext);
 
-  console.log('listings', listings);
-
   // useEffect(() => {
   //   if (nftData.length > 0 && marketplaceDataContext?.fetchVoteData) {
   //     marketplaceDataContext.fetchVoteData();
@@ -33,8 +31,6 @@ const ListingGridComponent: React.FC<Props> = ({ overrideOnclickBehavior, emptyT
       tokenId: nft.tokenId.toString()
     }));
   }, [nftData]);
-
-  console.log('convertedNftData', convertedNftData);
 
   if (loadingListings) {
     return (

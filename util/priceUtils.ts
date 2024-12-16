@@ -72,16 +72,6 @@ export const calculateSalePercentageDifference = (
   if (difference > 0) sign = "+";
   if (difference < 0) sign = "-";
 
-  // Console logs for debugging
-  console.log("=== calculateSalePercentageDifference ===");
-  console.log("usdPrice:", usdPrice);
-  console.log("nftValue:", nftValue);
-  console.log("ratio:", ratio);
-  console.log("raw difference (ratio-1)*100:", (ratio - 1)*100);
-  console.log("adjusted difference after epsilon check:", difference);
-  console.log("sign:", sign);
-  console.log("=========================================");
-
   // Use absolute value for display since sign is determined separately
   return `${sign}${Math.abs(difference).toFixed(0)}%`;
 };

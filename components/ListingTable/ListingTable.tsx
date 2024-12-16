@@ -15,7 +15,7 @@ import {
   calculateSaleRatio,
   calculateSalePercentageDifference,
 } from "@/util/priceUtils"; // Import the utility functions
-import { PEARL_ADDRESS, REETH_ADDRESS, RWA_ADDRESS } from "@/const/contracts"; // Ensure REETH_ADDRESS is imported
+import { PEARL_ADDRESS, REETH_ADDRESS, RWA_ADDRESS, USDC_ADDRESS } from "@/const/contracts"; // Ensure REETH_ADDRESS and USDC_ADDRESS are imported
 
 type MarketGridProps = {
   overrideOnclickBehavior?: (nft: any) => void;
@@ -30,7 +30,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
   lockedTokenAmounts,
 }) => {
   // Fetch data from useMarketplaceStore
-  const { nftData, loadingListings, loadingAuctions, reEthPrice, lockedTokenPrice, rwaPrice } = useMarketplaceStore();
+  const { nftData, loadingListings, loadingAuctions, reEthPrice, lockedTokenPrice, rwaPrice, usdcPrice } = useMarketplaceStore();
 
   if (loadingListings || loadingAuctions) {
     return (
@@ -50,8 +50,6 @@ const ListingTable: React.FC<MarketGridProps> = ({
     );
   }
   
-  console.log('nftData', nftData);
-
   const rows = nftData.map((nft) => {
     // Determine the price details based on listing type
     let priceDisplay = "N/A";
@@ -73,6 +71,9 @@ const ListingTable: React.FC<MarketGridProps> = ({
       } else if (currencyAddress.toLowerCase() === RWA_ADDRESS.toLowerCase()) {
         usdPrice = convertReEthToUsd(reEthAmount, rwaPrice);
         usdPriceNumber = convertReEthToUsdNumber(reEthAmount, rwaPrice);
+      } else if (currencyAddress.toLowerCase() === USDC_ADDRESS.toLowerCase()) {
+        usdPrice = reEthAmount
+        usdPriceNumber = parseFloat(reEthAmount);
       } else {
         usdPrice = "Unknown Currency";
         usdPriceNumber = null;
@@ -112,6 +113,7 @@ const ListingTable: React.FC<MarketGridProps> = ({
     const saleRatio = usdPriceNumber && nft.nft?.metadata.assignedValue > 0
       ? calculateSalePercentageDifference(usdPriceNumber, nft.nft.metadata.assignedValue)
       : "N/A";
+
 
     return {
       id: nft.tokenId,

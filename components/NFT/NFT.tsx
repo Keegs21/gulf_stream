@@ -8,7 +8,7 @@ import { useUserStore, NFTWithAssignedValue } from "@/store/useUserStore";
 import { useMarketplaceStore } from "@/store/useMarketplaceStore";
 import { ethers } from "ethers";
 import { Cross1Icon } from '@radix-ui/react-icons';
-import { VERWA_ADDRESS, PEARL_ADDRESS, REETH_ADDRESS, NFT_COLLECTION_ADDRESS, RWALISTING_ADDRESS, VERWA, RWA_LISTING, RWA_ADDRESS } from "@/const/contracts";
+import { VERWA_ADDRESS, PEARL_ADDRESS, REETH_ADDRESS, NFT_COLLECTION_ADDRESS, RWALISTING_ADDRESS, VERWA, RWA_LISTING, RWA_ADDRESS, USDC_ADDRESS } from "@/const/contracts";
 import Image from 'next/image'; // Import Next.js Image component if needed
 
 type Props = {
@@ -81,6 +81,8 @@ const NFTComponent: React.FC<Props> = ({
         return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
       return "Loading...";
+    } else if (currencyAddress.toLowerCase() === USDC_ADDRESS.toLowerCase()) {
+      return `$${parsedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     } else {
       return "Unknown Currency";
     }
